@@ -22,8 +22,12 @@ namespace WebPWrapper.Test {
                 .Resize(200, 200)
                 .Build();
 
-            //var output = new MemoryStream();
-            //encoder.Encode(File.Open("test.png", FileMode.Open), output);
+            var output = new MemoryStream();
+            using (var inputFile = File.Open("Samples/kaohsiung.jpg", FileMode.Open)) {
+                encoder.Encode(inputFile, output);
+            }
+
+            Assert.NotEqual(0, output.Length);
         }
     }
 }
