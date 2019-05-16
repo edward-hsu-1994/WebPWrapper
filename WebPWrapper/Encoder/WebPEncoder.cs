@@ -21,13 +21,11 @@ namespace WebPWrapper.Encoder {
             var inputFile = Path.GetTempFileName();
             var outputFile = Path.GetTempFileName();
 
-            input.Seek(0, SeekOrigin.Begin);
-
-            using (var inputStream = File.Open(inputFile, FileMode.Open)) {
-                input.CopyTo(inputStream);
-            }
-
             try {
+                using (var inputStream = File.Open(inputFile, FileMode.Open)) {
+                    input.CopyTo(inputStream);
+                }
+
                 using (Process webpProcess = new Process()) {
                     var stdout = "";
                     try {
@@ -50,16 +48,14 @@ namespace WebPWrapper.Encoder {
                         throw new Exception(stdout);
                     }
                 }
-            } catch (Exception e) {
-                Console.WriteLine(e.Message);
-            }
 
-            using (var outputStream = File.Open(outputFile, FileMode.Open)) {
-                outputStream.CopyTo(output);
+                using (var outputStream = File.Open(outputFile, FileMode.Open)) {
+                    outputStream.CopyTo(output);
+                }
+            } finally {
+                File.Delete(inputFile);
+                File.Delete(outputFile);
             }
-
-            File.Delete(inputFile);
-            File.Delete(outputFile);
         }
 
 
