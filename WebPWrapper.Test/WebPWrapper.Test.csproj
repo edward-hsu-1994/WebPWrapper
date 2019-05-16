@@ -20,4 +20,10 @@
     <Folder Include="Samples\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Samples\kaohsiung.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
