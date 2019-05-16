@@ -38,6 +38,7 @@ namespace WebPWrapper.Encoder {
                 } else {
                     throw new PlatformNotSupportedException();
                 }
+                _executeFilePath = Path.Combine(Path.GetFullPath("."), _executeFilePath);
             }
 
             if (!File.Exists(_executeFilePath)) {
