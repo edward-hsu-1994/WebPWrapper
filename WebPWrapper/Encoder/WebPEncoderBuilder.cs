@@ -170,14 +170,22 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <returns>WebP編碼器</returns>
         public IWebPEncoder Build() {
-            var args = string.Join(" ", _arguments.Select(x => {
+            var args = GetCurrentArguments();
+            return new WebPEncoder(_executeFilePath, args);
+        }
+
+        /// <summary>
+        /// 取得目前CLI參數
+        /// </summary>
+        /// <returns>CLI參數</returns>
+        public string GetCurrentArguments() {
+            return string.Join(" ", _arguments.Select(x => {
                 if (x.Key.StartsWith("-")) {
                     return $"{x.Key} {x.Value}";
                 } else {
                     return x.Value;
                 }
             }));
-            return new WebPEncoder(_executeFilePath, args);
         }
     }
 }

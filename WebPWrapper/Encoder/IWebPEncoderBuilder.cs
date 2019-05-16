@@ -67,5 +67,11 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <returns>WebP編碼器</returns>
         IWebPEncoder Build();
+
+        /// <summary>
+        /// 取得目前CLI參數
+        /// </summary>
+        /// <returns>CLI參數</returns>
+        string GetCurrentArguments();
     }
 }
