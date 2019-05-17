@@ -52,7 +52,7 @@ namespace WebPWrapper.Encoder {
         /// <param name="y">起始座標Y</param>
         /// <param name="width">寬度</param>
         /// <param name="height">高度</param> 
-        public WebPEncoderBuilder Crop(int x, int y, int width, int height) {
+        public IWebPEncoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
@@ -62,7 +62,7 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <param name="width">寬度</param>
         /// <param name="height">寬度</param> 
-        public WebPEncoderBuilder Resize(int width, int height) {
+        public IWebPEncoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
@@ -70,7 +70,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 容許多執行序
         /// </summary>
-        public WebPEncoderBuilder MultiThread() {
+        public IWebPEncoderBuilder MultiThread() {
             _arguments.Add((key: "-mt", value: null));
             return this;
         }
@@ -78,7 +78,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 降低記憶體使用
         /// </summary>
-        public WebPEncoderBuilder LowMemory() {
+        public IWebPEncoderBuilder LowMemory() {
             _arguments.Add((key: "-low_memory", value: null));
             return this;
         }
@@ -86,7 +86,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 複製來源圖片的Metadata
         /// </summary>
-        public WebPEncoderBuilder CopyMetadata(params Metadatas[] metadatas) {
+        public IWebPEncoderBuilder CopyMetadata(params Metadatas[] metadatas) {
             if (metadatas == null || metadatas.Length == 0) {
                 throw new ArgumentNullException(nameof(metadatas));
             }
@@ -97,7 +97,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 停用ASM優化
         /// </summary>
-        public WebPEncoderBuilder DisableAssemblyOptimization() {
+        public IWebPEncoderBuilder DisableAssemblyOptimization() {
             _arguments.Add((key: "-noasm", value: null));
             return this;
         }
@@ -106,7 +106,7 @@ namespace WebPWrapper.Encoder {
         /// 讀取預設的組態
         /// </summary>
         /// <param name="profile">組態類型</param> 
-        public WebPEncoderBuilder LoadPresetProfile(PresetProfiles profile) {
+        public IWebPEncoderBuilder LoadPresetProfile(PresetProfiles profile) {
             _arguments.Add((key: "-preset", value: profile.ToString().ToLower()));
             return this;
         }
@@ -115,7 +115,7 @@ namespace WebPWrapper.Encoder {
         /// 設定壓縮組態
         /// </summary>
         /// <param name="config">壓縮組態設定</param> 
-        public WebPEncoderBuilder CompressionConfig(Expression<Action<CompressionConfiguration>> config) {
+        public IWebPEncoderBuilder CompressionConfig(Expression<Action<CompressionConfiguration>> config) {
             var _compressionConfiguration = new CompressionConfiguration();
             config.Compile().Invoke(_compressionConfiguration);
 
@@ -127,7 +127,7 @@ namespace WebPWrapper.Encoder {
         /// 設定Alpha組態
         /// </summary>
         /// <param name="config">Alpha組態設定</param>
-        public WebPEncoderBuilder AlphaConfig(Expression<Action<AlphaConfiguration>> config) {
+        public IWebPEncoderBuilder AlphaConfig(Expression<Action<AlphaConfiguration>> config) {
             var _alphaConfiguration = new AlphaConfiguration();
             config.Compile().Invoke(_alphaConfiguration);
 
@@ -138,7 +138,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 重設回預設值
         /// </summary>
-        public WebPEncoderBuilder Reset() {
+        public IWebPEncoderBuilder Reset() {
             _arguments.Clear();
             return this;
         }
