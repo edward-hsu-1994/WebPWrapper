@@ -16,7 +16,7 @@ namespace WebPWrapper {
         public const string _linuxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2-linux-x86-64.tar.gz";
         public const string _osxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2-mac-10.14.tar.gz";
 
-        public static async Task DownloadAsync() {
+        public static async Task DownloadAsync(bool ignoreIfExtsis = true) {
             string downloadUrl = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 downloadUrl = _windowsUrl;
@@ -35,6 +35,9 @@ namespace WebPWrapper {
 
                 using (var zipFile = new ZipArchive(fileStream, ZipArchiveMode.Read)) {
                     if (Directory.Exists("webp")) {
+                        if (ignoreIfExtsis) {
+                            return;
+                        }
                         Directory.Delete("webp", true);
                     }
 
@@ -43,8 +46,8 @@ namespace WebPWrapper {
             });
         }
 
-        public static void Download() {
-            DownloadAsync().GetAwaiter().GetResult();
+        public static void Download(bool ignoreIfExtsis = true) {
+            DownloadAsync(ignoreIfExtsis).GetAwaiter().GetResult();
         }
     }
 }
