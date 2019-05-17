@@ -52,7 +52,7 @@ namespace WebPWrapper.Encoder {
         /// <param name="y">起始座標Y</param>
         /// <param name="width">寬度</param>
         /// <param name="height">高度</param> 
-        public WebPEncoderBuilder Crop(uint x, uint y, uint width, uint height) {
+        public WebPEncoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
@@ -62,7 +62,7 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <param name="width">寬度</param>
         /// <param name="height">寬度</param> 
-        public WebPEncoderBuilder Resize(uint width, uint height) {
+        public WebPEncoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }

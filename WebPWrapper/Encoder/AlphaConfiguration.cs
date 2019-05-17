@@ -17,7 +17,7 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <param name="filter">過濾方法</param> 
         public AlphaConfiguration Filter(AlphaFilters filter) {
-            _arguments.Add(("-alpha_filter", filter.ToString().ToLower()));
+            _arguments.Add((key: "-alpha_filter", value: filter.ToString().ToLower()));
             return this;
         }
 
@@ -25,7 +25,28 @@ namespace WebPWrapper.Encoder {
         /// 禁止Alpha壓縮
         /// </summary>
         public AlphaConfiguration DisableCompression() {
-            _arguments.Add(("-alpha_method", ""));
+            _arguments.Add((key: "-alpha_method", value: ""));
+            return this;
+        }
+
+        /// <summary>
+        /// 透明處理
+        /// </summary>
+        /// <param name="process">處理方法</param>
+        /// <param name="blendColor">混合顏色，此選項在<paramref name="process"/>為<see cref="TransparentProcesses.Blend"/>的情況下才作用</param>
+        public AlphaConfiguration TransparentProcess(
+            TransparentProcesses process) {
+            switch (process) {
+                case TransparentProcesses.Exact:
+                    _arguments.Add((key: "-exact", value: null));
+                    break;
+                case TransparentProcesses.Remove:
+                    _arguments.Add((key: "-noalpha", value: null));
+                    break;
+                case TransparentProcesses.Blend:
+                    throw new ArgumentNullException("blendColor");
+                    break;
+            }
             return this;
         }
 
@@ -36,24 +57,20 @@ namespace WebPWrapper.Encoder {
         /// <param name="blendColor">混合顏色，此選項在<paramref name="process"/>為<see cref="TransparentProcesses.Blend"/>的情況下才作用</param>
         public AlphaConfiguration TransparentProcess(
             TransparentProcesses process,
-            Color? blendColor = null) {
+            Color blendColor) {
             switch (process) {
                 case TransparentProcesses.Exact:
-                    _arguments.Add(("-exact", ""));
+                    _arguments.Add((key: "-exact", value: null));
                     break;
                 case TransparentProcesses.Remove:
-                    _arguments.Add(("-noalpha", ""));
+                    _arguments.Add((key: "-noalpha", value: null));
                     break;
                 case TransparentProcesses.Blend:
-                    if (!blendColor.HasValue) {
-                        throw new ArgumentNullException(nameof(blendColor));
-                    }
+                    var color_R = String.Format("{0:X2}", blendColor.R);
+                    var color_G = String.Format("{0:X2}", blendColor.G);
+                    var color_B = String.Format("{0:X2}", blendColor.B);
 
-                    var color_R = String.Format("{0:X2}", blendColor.Value.R);
-                    var color_G = String.Format("{0:X2}", blendColor.Value.G);
-                    var color_B = String.Format("{0:X2}", blendColor.Value.B);
-
-                    _arguments.Add(("-blend_alpha", $"0x{color_R}{color_G}{color_B}"));
+                    _arguments.Add((key: "-blend_alpha", value: $"0x{color_R}{color_G}{color_B}"));
                     break;
             }
             return this;

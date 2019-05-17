@@ -34,13 +34,21 @@ namespace WebPWrapper.Encoder {
                         webpProcess.StartInfo.Arguments = _arguments + $" -o {outputFile} {inputFile}";
                         webpProcess.StartInfo.CreateNoWindow = true;
                         webpProcess.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
-                            stdout += e.Data;
+                            stdout += e.Data + "\r\n";
                         };
                         webpProcess.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
-                            stdout += e.Data;
+                            stdout += e.Data + "\r\n";
                         };
+                        webpProcess.StartInfo.RedirectStandardError = true;
+                        webpProcess.StartInfo.RedirectStandardOutput = true;
                         webpProcess.Start();
+                        webpProcess.BeginOutputReadLine();
+                        webpProcess.BeginErrorReadLine();
                         webpProcess.WaitForExit();
+
+                        if (webpProcess.ExitCode != 0) {
+                            throw new Exception(stdout);
+                        }
                     } catch (Exception e) {
                         File.Delete(inputFile);
                         File.Delete(outputFile);

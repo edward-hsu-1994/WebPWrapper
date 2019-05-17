@@ -10,14 +10,14 @@ namespace WebPWrapper.Encoder {
         /// <param name="y">起始座標Y</param>
         /// <param name="width">寬度</param>
         /// <param name="height">高度</param> 
-        WebPEncoderBuilder Crop(uint x, uint y, uint width, uint height);
+        WebPEncoderBuilder Crop(int x, int y, int width, int height);
 
         /// <summary>
         /// 縮放圖片，<paramref name="height"/>與<paramref name="width"/>至少一者非0，如果其中一值為0則等比例縮放
         /// </summary>
         /// <param name="width">寬度</param>
         /// <param name="height">寬度</param> 
-        WebPEncoderBuilder Resize(uint width, uint height);
+        WebPEncoderBuilder Resize(int width, int height);
 
         /// <summary>
         /// 容許多執行序

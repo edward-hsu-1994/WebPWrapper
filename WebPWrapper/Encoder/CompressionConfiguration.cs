@@ -16,10 +16,11 @@ namespace WebPWrapper.Encoder {
         /// 無損壓縮
         /// </summary>
         /// <param name="config">壓縮設定</param>
-        public void Lossless(Expression<Action<LosslessCompressionConfiguration>> config) {
-            var _losslessCompressionConfiguration = new LosslessCompressionConfiguration();
+        public void Lossless(Expression<Action<LosslessConfiguration>> config) {
+            var _losslessCompressionConfiguration = new LosslessConfiguration();
             config.Compile().Invoke(_losslessCompressionConfiguration);
 
+            _arguments.Add((key: "-lossless", value: null));
             _arguments.Add((
                 key: nameof(Lossless),
                 value: _losslessCompressionConfiguration.GetCurrentArguments()
@@ -27,13 +28,15 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 無損壓縮
+        /// 接近無損壓縮
         /// </summary>
         /// <param name="config">壓縮設定</param>
-        public void NearLossless(Expression<Action<NearLosslessCompressionConfiguration>> config) {
-            var _nearLosslessCompressionConfiguration = new NearLosslessCompressionConfiguration();
+        /// <param name="level">等級，最小0，最大100效果等同-lossless</param>
+        public void NearLossless(int level, Expression<Action<NearLosslessConfiguration>> config) {
+            var _nearLosslessCompressionConfiguration = new NearLosslessConfiguration();
             config.Compile().Invoke(_nearLosslessCompressionConfiguration);
 
+            _arguments.Add((key: "-near_lossless", value: level.ToString()));
             _arguments.Add((
                 key: nameof(NearLossless),
                 value: _nearLosslessCompressionConfiguration.GetCurrentArguments()
