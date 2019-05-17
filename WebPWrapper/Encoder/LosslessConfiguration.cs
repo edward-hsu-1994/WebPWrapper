@@ -26,7 +26,7 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 設定壓縮速度
+        /// 設定壓縮品質
         /// </summary>
         /// <param name="quality">範圍自0~100，0最快，100最慢，預設為75，較小的數值將產生較大的文件</param>
         public LosslessConfiguration Quality(int quality) {
