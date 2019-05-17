@@ -11,7 +11,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// 建構中的參數暫存
         /// </summary>
-        private Dictionary<string, string> _arguments = new Dictionary<string, string>();
+        private List<(string key, string value)> _arguments = new List<(string key, string value)>();
 
         private string _executeFilePath;
 
@@ -19,7 +19,6 @@ namespace WebPWrapper.Encoder {
         public const string _windowsDir = "libwebp-1.0.2-windows-x86";
         public const string _linuxDir = "libwebp-1.0.2-linux-x86-64";
         public const string _osxDir = "libwebp-1.0.2-mac-10.14";
-
 
 
         /// <summary>
@@ -54,10 +53,7 @@ namespace WebPWrapper.Encoder {
         /// <param name="width">寬度</param>
         /// <param name="height">高度</param> 
         public WebPEncoderBuilder Crop(uint x, uint y, uint width, uint height) {
-            if (_arguments.ContainsKey("-crop")) {
-                _arguments.Remove("-crop");
-            }
-            _arguments["-crop"] = $"{x} {y} {width} {height}";
+            _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
 
@@ -67,10 +63,7 @@ namespace WebPWrapper.Encoder {
         /// <param name="width">寬度</param>
         /// <param name="height">寬度</param> 
         public WebPEncoderBuilder Resize(uint width, uint height) {
-            if (_arguments.ContainsKey("-resize")) {
-                _arguments.Remove("-resize");
-            }
-            _arguments["-resize"] = $"{width} {height}";
+            _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
 
@@ -78,10 +71,7 @@ namespace WebPWrapper.Encoder {
         /// 容許多執行序
         /// </summary>
         public WebPEncoderBuilder MultiThread() {
-            if (_arguments.ContainsKey("-mt")) {
-                _arguments.Remove("-mt");
-            }
-            _arguments["-mt"] = null;
+            _arguments.Add((key: "-mt", value: null));
             return this;
         }
 
@@ -89,10 +79,7 @@ namespace WebPWrapper.Encoder {
         /// 降低記憶體使用
         /// </summary>
         public WebPEncoderBuilder LowMemory() {
-            if (_arguments.ContainsKey("-low_memory")) {
-                _arguments.Remove("-low_memory");
-            }
-            _arguments["-low_memory"] = null;
+            _arguments.Add((key: "-low_memory", value: null));
             return this;
         }
 
@@ -103,10 +90,7 @@ namespace WebPWrapper.Encoder {
             if (metadatas == null || metadatas.Length == 0) {
                 throw new ArgumentNullException(nameof(metadatas));
             }
-            if (_arguments.ContainsKey("-metadata")) {
-                _arguments.Remove("-metadata");
-            }
-            _arguments["-metadata"] = string.Join(",", metadatas.Select(x => x.ToString().ToLower()));
+            _arguments.Add((key: "-metadata", value: string.Join(",", metadatas.Select(x => x.ToString().ToLower()))));
             return this;
         }
 
@@ -114,10 +98,7 @@ namespace WebPWrapper.Encoder {
         /// 停用ASM優化
         /// </summary>
         public WebPEncoderBuilder DisableAssemblyOptimization() {
-            if (_arguments.ContainsKey("-noasm")) {
-                _arguments.Remove("-noasm");
-            }
-            _arguments["-noasm"] = null;
+            _arguments.Add((key: "-noasm", value: null));
             return this;
         }
 
@@ -126,10 +107,7 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <param name="profile">組態類型</param> 
         public WebPEncoderBuilder LoadPresetProfile(PresetProfiles profile) {
-            if (_arguments.ContainsKey("-preset")) {
-                _arguments.Remove("-preset");
-            }
-            _arguments["-preset"] = profile.ToString().ToLower();
+            _arguments.Add((key: "-preset", value: profile.ToString().ToLower()));
             return this;
         }
 
@@ -141,7 +119,7 @@ namespace WebPWrapper.Encoder {
             var _compressionConfiguration = new CompressionConfiguration();
             config.Compile().Invoke(_compressionConfiguration);
 
-            _arguments[nameof(CompressionConfig)] = "";
+            _arguments.Add((key: nameof(CompressionConfig), value: _compressionConfiguration.GetCurrentArguments()));
             return this;
         }
 
@@ -153,7 +131,7 @@ namespace WebPWrapper.Encoder {
             var _alphaConfiguration = new AlphaConfiguration();
             config.Compile().Invoke(_alphaConfiguration);
 
-            _arguments[nameof(AlphaConfig)] = "";
+            _arguments.Add((key: nameof(AlphaConfig), value: _alphaConfiguration.GetCurrentArguments()));
             return this;
         }
 
@@ -180,10 +158,10 @@ namespace WebPWrapper.Encoder {
         /// <returns>CLI參數</returns>
         public string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
-                if (x.Key.StartsWith("-")) {
-                    return $"{x.Key} {x.Value}";
+                if (x.key.StartsWith("-")) {
+                    return $"{x.key} {x.value}";
                 } else {
-                    return x.Value;
+                    return x.value;
                 }
             }));
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using WebPWrapper;
@@ -20,6 +21,12 @@ namespace WebPWrapper.Test {
                 .LowMemory()
                 .MultiThread()
                 .Resize(200, 200)
+                .AlphaConfig(x => x
+                    .TransparentProcess(
+                        TransparentProcesses.Blend,
+                        Color.Black
+                    )
+                )
                 .Build();
 
             var output = new MemoryStream();
