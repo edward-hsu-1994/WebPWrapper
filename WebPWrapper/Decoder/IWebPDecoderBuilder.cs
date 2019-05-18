@@ -31,14 +31,31 @@ namespace WebPWrapper.Decoder {
         IWebPDecoderBuilder MultiThread();
 
         /// <summary>
-        /// 降低記憶體使用
-        /// </summary>
-        IWebPDecoderBuilder LowMemory();
-
-        /// <summary>
         /// 停用ASM優化
         /// </summary>
         IWebPDecoderBuilder DisableAssemblyOptimization();
+
+        /// <summary>
+        /// 禁止濾波過程
+        /// </summary> 
+        IWebPDecoderBuilder NoFilter();
+
+        /// <summary>
+        /// 禁止YUV420升級器
+        /// </summary>
+        IWebPDecoderBuilder NoFancy();
+
+        /// <summary>
+        /// 抖動強度，抖動是應用於有損壓縮中的色度分量的後處理效果。它有助於平滑漸變並避免條帶偽影
+        /// </summary>
+        /// <param name="strength">強度，最小0，最大100</param> 
+        IWebPDecoderBuilder Dither(int strength);
+
+        /// <summary>
+        /// 垂直翻轉
+        /// </summary>
+        /// <returns></returns>
+        IWebPDecoderBuilder Flip();
 
         /// <summary>
         /// 重設回預設值

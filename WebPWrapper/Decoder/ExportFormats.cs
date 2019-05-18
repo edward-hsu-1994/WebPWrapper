@@ -5,6 +5,7 @@
         PAM,
         PPM,
         PGM,
-        YUV
+        YUV,
+        BMP
     }
 }
