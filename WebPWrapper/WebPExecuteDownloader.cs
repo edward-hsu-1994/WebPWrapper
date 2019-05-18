@@ -33,15 +33,23 @@ namespace WebPWrapper {
 
                 var fileStream = await http.GetStreamAsync(downloadUrl);
 
-                using (var zipFile = new ZipArchive(fileStream, ZipArchiveMode.Read)) {
-                    var path = Path.Combine(Path.GetFullPath("."), "webp");
-                    if (Directory.Exists(path)) {
-                        if (ignoreIfExtsis) {
-                            return;
-                        }
-                        Directory.Delete(path, true);
-                    }
+                var path = Path.Combine(Path.GetFullPath("."), "webp");
 
+                if (Directory.Exists(path)) {
+                    if (ignoreIfExtsis) {
+                        return;
+                    }
+                    Directory.Delete(path, true);
+                }
+
+                Directory.CreateDirectory(path);
+
+                using (var zipFileStream = File.Open(Path.Combine(path, "webp.zip"), FileMode.Create)) {
+                    await fileStream.CopyToAsync(zipFileStream);
+                }
+
+                using (var zipFileStream = File.Open(Path.Combine(path, "webp.zip"), FileMode.Open))
+                using (var zipFile = new ZipArchive(zipFileStream, ZipArchiveMode.Read)) {
                     zipFile.ExtractToDirectory(path);
                 }
             });

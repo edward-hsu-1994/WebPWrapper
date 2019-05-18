@@ -43,11 +43,11 @@ using WebPWrapper.Decoder;
 var builder = new WebPDecoderBuilder();
 
 var encoder = builder
-    .Resize(32, 0) // 調整寬度為32，等比縮放(因為高度為0)
-    .Build(); // 建立解碼器
+	.Resize(32, 0) // 調整寬度為32，等比縮放(因為高度為0)
+	.Build(); // 建立解碼器
  
 using (var outputFile = File.Open("output.png", FileMode.Create))
 using (var inputFile = File.Open("input.webp", FileMode.Open)) {
-    encoder.Decode(inputFile, outputFile); // 解碼
+	encoder.Decode(inputFile, outputFile); // 解碼
 }
 ```
