@@ -1,3 +1,5 @@
+set -e
+
 # Read Version
 version=$(cat version)
 

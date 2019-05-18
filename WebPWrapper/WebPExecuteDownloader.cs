@@ -3,6 +3,7 @@ using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -63,8 +64,48 @@ namespace WebPWrapper {
 
                     gzipStream.Close();
                     inStream.Close();
+
+                    var executeFilesList = Exec($"find {path} | grep bin/")
+                        .Split(new char[] { '\r', '\n' },
+                        StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var executeFile in executeFilesList) {
+                        Exec($"chmod +x {executeFile}");
+                    }
                 }
             });
+        }
+
+        // Copy From : https://stackoverflow.com/questions/45132081/file-permissions-on-linux-unix-with-net-core
+        private static string Exec(string cmd) {
+            var escapedArgs = cmd.Replace("\"", "\\\"");
+
+            var process = new Process {
+                StartInfo = new ProcessStartInfo {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = "bash",
+                    Arguments = $"-c \"{escapedArgs}\""
+                }
+            };
+            string stdout = "";
+            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
+                stdout += e.Data + "\r\n";
+            };
+            process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
+                stdout += e.Data + "\r\n";
+            };
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.RedirectStandardOutput = true;
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+
+            return stdout;
         }
 
         public static void Download(bool ignoreIfExtsis = true) {
