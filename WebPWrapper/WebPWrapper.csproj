@@ -21,4 +21,8 @@
     <DocumentationFile>bin\Release\netstandard2.0\WebPWrapper.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib.NETStandard" Version="1.0.7" />
+  </ItemGroup>
+
 </Project>

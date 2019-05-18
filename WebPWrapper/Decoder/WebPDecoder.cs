@@ -55,7 +55,11 @@ namespace WebPWrapper.Decoder {
                         File.Delete(inputFile);
                         File.Delete(outputFile);
 
-                        throw new Exception(stdout);
+                        if (stdout == "") {
+                            throw e;
+                        } else {
+                            throw new Exception(stdout);
+                        }
                     }
                 }
 

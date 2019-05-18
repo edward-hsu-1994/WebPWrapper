@@ -1,7 +1,9 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -33,15 +35,34 @@ namespace WebPWrapper {
 
                 var fileStream = await http.GetStreamAsync(downloadUrl);
 
-                using (var zipFile = new ZipArchive(fileStream, ZipArchiveMode.Read)) {
-                    if (Directory.Exists("webp")) {
-                        if (ignoreIfExtsis) {
-                            return;
-                        }
-                        Directory.Delete("webp", true);
-                    }
+                var path = Path.Combine(Path.GetFullPath("."), "webp");
 
-                    zipFile.ExtractToDirectory("webp");
+                if (Directory.Exists(path)) {
+                    if (ignoreIfExtsis) {
+                        return;
+                    }
+                    Directory.Delete(path, true);
+                }
+
+                Directory.CreateDirectory(path);
+
+                using (var zipFileStream = File.Open(Path.Combine(path, "webp.bin"), FileMode.Create)) {
+                    await fileStream.CopyToAsync(zipFileStream);
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                    var fast = new FastZip();
+                    fast.ExtractZip(Path.Combine(path, "webp.bin"), path, null);
+                } else {
+                    Stream inStream = File.OpenRead(Path.Combine(path, "webp.bin"));
+                    Stream gzipStream = new GZipInputStream(inStream);
+
+                    TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+                    tarArchive.ExtractContents(path);
+                    tarArchive.Close();
+
+                    gzipStream.Close();
+                    inStream.Close();
                 }
             });
         }
