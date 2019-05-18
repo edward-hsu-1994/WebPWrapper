@@ -1,4 +1,6 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
+﻿using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,8 +50,20 @@ namespace WebPWrapper {
                     await fileStream.CopyToAsync(zipFileStream);
                 }
 
-                var fast = new FastZip();
-                fast.ExtractZip(Path.Combine(path, "webp.bin"), path, null);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                    var fast = new FastZip();
+                    fast.ExtractZip(Path.Combine(path, "webp.bin"), path, null);
+                } else {
+                    Stream inStream = File.OpenRead(Path.Combine(path, "webp.bin"));
+                    Stream gzipStream = new GZipInputStream(inStream);
+
+                    TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+                    tarArchive.ExtractContents(path);
+                    tarArchive.Close();
+
+                    gzipStream.Close();
+                    inStream.Close();
+                }
             });
         }
 
