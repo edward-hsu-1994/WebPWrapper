@@ -1,5 +1,7 @@
 # WebPWrapper
 
+[![Build Status](https://jenkins.gofa.cloud/buildStatus/icon?job=WebPWrapper)](#)
+
 這是一個可以在`.NET Standard 2.0`環境運行的WebP包裝套件。提供包裝好的CLI參數建構器幫助調用WebP CLI。
 
 有關WebP詳細資訊請參考官方網站: [https://developers.google.com/speed/webp/](https://developers.google.com/speed/webp/)
