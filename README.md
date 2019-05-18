@@ -13,7 +13,10 @@ dotnet add package WebPWrapper
 
 ### 編碼
 ```csharp 
+using WebPWrapper;
 using WebPWrapper.Encoder;
+
+WebPExecuteDownloader.Download();
 
 var builder = new WebPEncoderBuilder();
 
@@ -38,7 +41,10 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 
 ### 解碼
 ```csharp
+using WebPWrapper;
 using WebPWrapper.Decoder; 
+
+WebPExecuteDownloader.Download();
 
 var builder = new WebPDecoderBuilder();
 
