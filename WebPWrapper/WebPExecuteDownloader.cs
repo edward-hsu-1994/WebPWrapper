@@ -1,7 +1,7 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -44,14 +44,12 @@ namespace WebPWrapper {
 
                 Directory.CreateDirectory(path);
 
-                using (var zipFileStream = File.Open(Path.Combine(path, "webp.zip"), FileMode.Create)) {
+                using (var zipFileStream = File.Open(Path.Combine(path, "webp.bin"), FileMode.Create)) {
                     await fileStream.CopyToAsync(zipFileStream);
                 }
 
-                using (var zipFileStream = File.Open(Path.Combine(path, "webp.zip"), FileMode.Open))
-                using (var zipFile = new ZipArchive(zipFileStream, ZipArchiveMode.Read)) {
-                    zipFile.ExtractToDirectory(path);
-                }
+                var fast = new FastZip();
+                fast.ExtractZip(Path.Combine(path, "webp.bin"), path, null);
             });
         }
 
