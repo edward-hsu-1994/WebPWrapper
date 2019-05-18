@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>XuPeiYao</Authors>
+    <Description>.NET Standard 2.0的WebP轉檔器包裝套件</Description>
+    <Copyright>MIT</Copyright>
+    <PackageProjectUrl>https://github.com/XuPeiYao/WebPWrapper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/XuPeiYao/WebPWrapper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>webp wrapper</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

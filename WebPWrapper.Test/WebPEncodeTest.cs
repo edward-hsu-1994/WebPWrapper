@@ -8,11 +8,14 @@ using WebPWrapper.Encoder;
 using Xunit;
 
 namespace WebPWrapper.Test {
-    public class WebPTest {
+    [Collection("WebP Init")]
+    public class WebPEncodeTest {
+        public WebPEncodeTest(WebPExecuteDownloadHelper a) {
+
+        }
+
         [Fact]
         public void Case1() {
-            WebPExecuteDownloader.Download();
-
             var builder = new WebPEncoderBuilder();
 
             var encoder = builder
@@ -40,8 +43,6 @@ namespace WebPWrapper.Test {
 
         [Fact]
         public void Case2() {
-            WebPExecuteDownloader.Download();
-
             var builder = new WebPEncoderBuilder();
 
             var encoder = builder
@@ -68,8 +69,6 @@ namespace WebPWrapper.Test {
 
         [Fact]
         public void Case3() {
-            WebPExecuteDownloader.Download();
-
             var builder = new WebPEncoderBuilder();
 
             var encoder = builder
@@ -86,7 +85,26 @@ namespace WebPWrapper.Test {
                 Directory.CreateDirectory("Output");
             }
 
-            using (var outputFile = File.Open("Output/openCC-Yellow2.webp", FileMode.Create))
+            using (var outputFile = File.Open("Output/openCC-Exact.webp", FileMode.Create))
+            using (var inputFile = File.Open("Samples/openCC.png", FileMode.Open)) {
+                encoder.Encode(inputFile, outputFile);
+            }
+        }
+
+        [Fact]
+        public void Case4() {
+            var builder = new WebPEncoderBuilder();
+
+            var encoder = builder
+                .Resize(100, 100)
+                .Resize(50, 0)
+                .Build();
+
+            if (!Directory.Exists("Output")) {
+                Directory.CreateDirectory("Output");
+            }
+
+            using (var outputFile = File.Open("Output/openCC-ResetResize.webp", FileMode.Create))
             using (var inputFile = File.Open("Samples/openCC.png", FileMode.Open)) {
                 encoder.Encode(inputFile, outputFile);
             }
