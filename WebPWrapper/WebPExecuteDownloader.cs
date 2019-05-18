@@ -34,14 +34,15 @@ namespace WebPWrapper {
                 var fileStream = await http.GetStreamAsync(downloadUrl);
 
                 using (var zipFile = new ZipArchive(fileStream, ZipArchiveMode.Read)) {
-                    if (Directory.Exists("webp")) {
+                    var path = Path.Combine(Path.GetFullPath("."), "webp");
+                    if (Directory.Exists(path)) {
                         if (ignoreIfExtsis) {
                             return;
                         }
-                        Directory.Delete("webp", true);
+                        Directory.Delete(path, true);
                     }
 
-                    zipFile.ExtractToDirectory("webp");
+                    zipFile.ExtractToDirectory(path);
                 }
             });
         }
