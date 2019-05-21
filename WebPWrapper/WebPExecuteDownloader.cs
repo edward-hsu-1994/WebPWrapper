@@ -1,6 +1,8 @@
 ﻿using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
+using Mono.Unix;
+using Mono.Unix.Native;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -70,7 +72,7 @@ namespace WebPWrapper {
                         StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (var executeFile in executeFilesList) {
-                        Exec($"chmod +x {executeFile}");
+                        Syscall.chmod(executeFile, FilePermissions.S_IXOTH | FilePermissions.S_IXUSR | FilePermissions.S_IXGRP);
                     }
                 }
             });
