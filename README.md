@@ -1,6 +1,6 @@
 # WebPWrapper
 
-[![Build Status](https://jenkins.gofa.cloud/buildStatus/icon?job=WebPWrapper)](#)
+[![Build Status](https://jenkins.gofa.cloud/buildStatus/icon?job=WebPWrapper)](#) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](#) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
 
 這是一個可以在`.NET Standard 2.0`環境運行的WebP包裝套件。提供包裝好的CLI參數建構器幫助調用WebP CLI。
 
