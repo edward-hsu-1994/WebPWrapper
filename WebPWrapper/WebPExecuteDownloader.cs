@@ -11,13 +11,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WebPWrapper {
-    /// <summary>
-    /// WebP執行檔下載器
-    /// </summary>
     public static class WebPExecuteDownloader {
-        public const string _windowsUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2-windows-x86.zip";
-        public const string _linuxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2-linux-x86-64.tar.gz";
-        public const string _osxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.0.2-mac-10.14.tar.gz";
+        public const string _windowsUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-windows-x64.zip";
+        public const string _linuxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-linux-x86-64.tar.gz";
+        public const string _osxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-mac-x86-64.tar.gz";
 
         public static async Task DownloadAsync(bool ignoreIfExtsis = true) {
             string downloadUrl = null;
