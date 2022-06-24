@@ -16,9 +16,9 @@ namespace WebPWrapper.Encoder {
         private string _executeFilePath;
 
 
-        public const string _windowsDir = "libwebp-1.0.2-windows-x86";
-        public const string _linuxDir = "libwebp-1.0.2-linux-x86-64";
-        public const string _osxDir = "libwebp-1.0.2-mac-10.14";
+        public const string _windowsDir = "libwebp-1.2.2-windows-x64";
+        public const string _linuxDir = "libwebp-1.2.2-linux-x86-64";
+        public const string _osxDir = "libwebp-1.2.2-mac-x86-64";
 
 
         /// <summary>
