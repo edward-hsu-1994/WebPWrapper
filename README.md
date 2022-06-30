@@ -1,19 +1,20 @@
 # WebPWrapper
 
-[![Build Status](https://jenkins.gofa.cloud/buildStatus/icon?job=WebPWrapper)](#) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](#) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
+[![Unit Test](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](#) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
 
-這是一個可以在`.NET Standard 2.0`環境運行的WebP包裝套件。提供包裝好的CLI參數建構器幫助調用WebP CLI。
+This library is a wrapper for WebP CLI. 
+Provides a simple CLI parameter builder, making it easier to use WebP in development
 
-有關WebP詳細資訊請參考官方網站: [https://developers.google.com/speed/webp/](https://developers.google.com/speed/webp/)
+For more information about WebP and WebP CLI, please refer to [this website](https://developers.google.com/speed/webp/).
 
-## 快速上手
+## Getting started
 
-### 安裝套件
+### Install library
 ```shell
 dotnet add package WebPWrapper
 ```
 
-### 編碼
+### Use case
 ```csharp 
 using WebPWrapper;
 using WebPWrapper.Encoder;
