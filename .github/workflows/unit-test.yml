@@ -1,0 +1,24 @@
+name: Unit Test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  unit-test:
+    name: UnitTest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore packages
+        run: dotnet restore
+        working-directory: src
+      - name: Unit Test
+        run: dotnet test
+        working-directory: src
+      
