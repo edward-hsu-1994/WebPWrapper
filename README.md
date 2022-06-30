@@ -41,3 +41,8 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 	encoder.Encode(inputFile, outputFile); // encode image
 }
 ```
+
+## Suggestions
+
+For containerized services, I do not recommend downloading CLI in Runtime.
+I recommend installing the CLI when building the docker image. Then set `executeFilePath` in builder class's constructs
