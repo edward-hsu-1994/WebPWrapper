@@ -1,19 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.352
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebPWrapper", "WebPWrapper\WebPWrapper.csproj", "{18EFA50E-418F-4034-B248-8D7A14B8B11D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebPWrapper.Test", "WebPWrapper.Test\WebPWrapper.Test.csproj", "{CB194A9F-C095-42B3-9671-9B9082B1C141}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9C8EE837-97D9-4EE0-9D27-3CFE0A1D7D29}"
-	ProjectSection(SolutionItems) = preProject
-		build.sh = build.sh
-		LICENSE = LICENSE
-		README.md = README.md
-		version = version
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
