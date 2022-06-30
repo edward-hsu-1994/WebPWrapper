@@ -29,127 +29,61 @@ namespace WebPWrapper {
             await Task.Run(async () => {
                 var http = new HttpClient();
 
-                var fileStream = await http.GetStreamAsync(downloadUrl);
+                var webpCliDownloadStream = await http.GetStreamAsync(downloadUrl);
 
-                var path = Path.Combine(Path.GetFullPath("."), "webp");
+                var webpCliRootDirectoryPath = Path.Combine(Path.GetFullPath("."), "webp");
 
-                if (Directory.Exists(path)) {
+                if (Directory.Exists(webpCliRootDirectoryPath)) {
                     if (ignoreIfExtsis) {
                         return;
                     }
-                    Directory.Delete(path, true);
+                    Directory.Delete(webpCliRootDirectoryPath, true);
                 }
 
-                Directory.CreateDirectory(path);
-
-                using (var zipFileStream = File.Open(Path.Combine(path, "webp.bin"), FileMode.Create)) {
-                    await fileStream.CopyToAsync(zipFileStream);
+                // Create WebP CLI root directory
+                Directory.CreateDirectory(webpCliRootDirectoryPath);
+                
+                // Saving WebP Cli
+                var origionalDownloadWebCliFilePath = Path.GetTempFileName();
+                using (var origionalDownloadWebCliFileStream = File.Open(origionalDownloadWebCliFilePath, FileMode.OpenOrCreate))
+                {
+                    await webpCliDownloadStream.CopyToAsync(origionalDownloadWebCliFileStream);
                 }
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    ZipFile.ExtractToDirectory(Path.Combine(path, "webp.bin"), path, null);
-                } else {
-                    using (var stream = File.OpenRead(Path.Combine(path, "webp.bin")))
-                        ExtractTarGz(stream, Path.Combine(path, "webp.bin"));
+                var downloadUrlExtension = Path.GetExtension(downloadUrl)?.ToLower();
+                if (downloadUrlExtension == ".gz")
+                {
+                    var webpCliTarFilePath = Path.GetTempFileName();
+                    using (var webpCliTarGzFileStream = File.Open(origionalDownloadWebCliFilePath, FileMode.Open))
+                    using (var webpCliTarFileStream = File.Open(webpCliTarFilePath, FileMode.OpenOrCreate))
+                    using (var downloadedWebPCliTarStream = new GZipStream(webpCliTarGzFileStream, CompressionMode.Decompress))
+                    {
+                        await downloadedWebPCliTarStream.CopyToAsync(webpCliTarFileStream);
+                    }
 
-                    var executeFilesList = Exec($"find {path} | grep bin/")
+                    File.Delete(origionalDownloadWebCliFilePath);
+                    File.Move(webpCliTarFilePath, origionalDownloadWebCliFilePath);
+
+                    TarFile.ExtractToDirectory(origionalDownloadWebCliFilePath, webpCliRootDirectoryPath, null);
+                    
+                    var executeFilesList = Exec($"find {webpCliRootDirectoryPath} | grep bin/")
                         .Split(new char[] { '\r', '\n' },
-                        StringSplitOptions.RemoveEmptyEntries);
+                            StringSplitOptions.RemoveEmptyEntries);
 
-                    foreach (var executeFile in executeFilesList) {
+                    foreach (var executeFile in executeFilesList)
+                    {
                         Exec($"chmod +x {executeFile}");
                     }
                 }
+                else
+                {
+                    ZipFile.ExtractToDirectory(origionalDownloadWebCliFilePath, webpCliRootDirectoryPath, null);
+                }
+
+                File.Delete(origionalDownloadWebCliFilePath);
             });
         }
-
-        public static void ExtractTarGz(string filename, string outputDir)
-        {
-            using (var stream = File.OpenRead(filename))
-                ExtractTarGz(stream, outputDir);
-        }
-
-        /// <summary>
-        /// Extracts a <i>.tar.gz</i> archive stream to the specified directory.
-        /// </summary>
-        /// <param name="stream">The <i>.tar.gz</i> to decompress and extract.</param>
-        /// <param name="outputDir">Output directory to write the files.</param>
-        public static void ExtractTarGz(Stream stream, string outputDir)
-        {
-            // A GZipStream is not seekable, so copy it first to a MemoryStream
-            using (var gzip = new GZipStream(stream, CompressionMode.Decompress))
-            {
-                const int chunk = 4096;
-                using (var memStr = new MemoryStream())
-                {
-                    int read;
-                    var buffer = new byte[chunk];
-                    do
-                    {
-                        read = gzip.Read(buffer, 0, chunk);
-                        memStr.Write(buffer, 0, read);
-                    } while (read == chunk);
-
-                    memStr.Seek(0, SeekOrigin.Begin);
-                    ExtractTar(memStr, outputDir);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Extractes a <c>tar</c> archive to the specified directory.
-        /// </summary>
-        /// <param name="filename">The <i>.tar</i> to extract.</param>
-        /// <param name="outputDir">Output directory to write the files.</param>
-        public static void ExtractTar(string filename, string outputDir)
-        {
-            using (var stream = File.OpenRead(filename))
-                ExtractTar(stream, outputDir);
-        }
-
-        /// <summary>
-        /// Extractes a <c>tar</c> archive to the specified directory.
-        /// </summary>
-        /// <param name="stream">The <i>.tar</i> to extract.</param>
-        /// <param name="outputDir">Output directory to write the files.</param>
-        public static void ExtractTar(Stream stream, string outputDir)
-        {
-            var buffer = new byte[100];
-            while (true)
-            {
-                stream.Read(buffer, 0, 100);
-                var name = Encoding.ASCII.GetString(buffer).Trim('\0');
-                if (String.IsNullOrWhiteSpace(name))
-                    break;
-                stream.Seek(24, SeekOrigin.Current);
-                stream.Read(buffer, 0, 12);
-                var size = Convert.ToInt64(Encoding.UTF8.GetString(buffer, 0, 12).Trim('\0').Trim(), 8);
-
-                stream.Seek(376L, SeekOrigin.Current);
-
-                var output = Path.Combine(outputDir, name);
-                if (!Directory.Exists(Path.GetDirectoryName(output)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(output));
-                if (!name.Equals("./", StringComparison.InvariantCulture))
-                {
-                    using (var str = File.Open(output, FileMode.OpenOrCreate, FileAccess.Write))
-                    {
-                        var buf = new byte[size];
-                        stream.Read(buf, 0, buf.Length);
-                        str.Write(buf, 0, buf.Length);
-                    }
-                }
-
-                var pos = stream.Position;
-
-                var offset = 512 - (pos % 512);
-                if (offset == 512)
-                    offset = 0;
-
-                stream.Seek(offset, SeekOrigin.Current);
-            }
-        }
-
+        
         // Copy From : https://stackoverflow.com/questions/45132081/file-permissions-on-linux-unix-with-net-core
         private static string Exec(string cmd) {
             var escapedArgs = cmd.Replace("\"", "\\\"");
