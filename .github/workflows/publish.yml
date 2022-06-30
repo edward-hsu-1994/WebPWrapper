@@ -1,0 +1,36 @@
+name: Publish To NuGet.org
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  publish:
+    name: Build Package And Publish to NuGet.org
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set VERSION variable from tag
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore packages
+        run: dotnet restore
+        working-directory: src
+      - name: Build
+        run: dotnet build --configuration Release /p:Version=${VERSION} --no-restore
+        working-directory: src/WebPWrapper
+      - name: UnitTest
+        run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+      - name: Pack
+        run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+        working-directory: src/WebPWrapper
+      - name: Publish to NuGet.org
+        run: dotnet nuget push WebPWrapper.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
+        working-directory: src/WebPWrapper
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
