@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>XuPeiYao</Authors>
-    <Description>.NET Standard 2.0的WebP轉檔器包裝套件</Description>
+    <Authors>Edward Hsu</Authors>
+    <Description>WebP CLI wrapper</Description>
     <Copyright>MIT</Copyright>
     <PackageProjectUrl>https://github.com/XuPeiYao/WebPWrapper</PackageProjectUrl>
     <RepositoryUrl>https://github.com/XuPeiYao/WebPWrapper</RepositoryUrl>
