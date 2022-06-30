@@ -23,39 +23,20 @@ WebPExecuteDownloader.Download();
 var builder = new WebPEncoderBuilder();
 
 var encoder = builder
-	.Resize(100, 0) // 調整寬度為100，等比縮放(因為高度為0)
-	.AlphaConfig(x => x // 透明處理設定
+	.Resize(100, 0) // Resize image to 100px (length)
+	.AlphaConfig(x => x // set alpha config
 		.TransparentProcess(
-			TransparentProcesses.Blend, // 透明部分將底色視為黃色混合
+			TransparentProcesses.Blend, // Change transparent color to blend with yellow color
 			Color.Yellow
 		)
 	)
-	.CompressionConfig(x => x // 壓縮設定
-		.Lossless(y => y.Quality(75)) // 使用無損壓縮且壓縮品質設為75
+	.CompressionConfig(x => x // set compression config
+		.Lossless(y => y.Quality(75)) // set lossless config
 	) 
-	.Build(); // 建立編碼器
+	.Build(); // build encoder
 
 using (var outputFile = File.Open("output.webp", FileMode.Create))
 using (var inputFile = File.Open("input.png", FileMode.Open)) {
-	encoder.Encode(inputFile, outputFile); // 編碼
-}
-```
-
-### 解碼
-```csharp
-using WebPWrapper;
-using WebPWrapper.Decoder; 
-
-WebPExecuteDownloader.Download();
-
-var builder = new WebPDecoderBuilder();
-
-var encoder = builder
-	.Resize(32, 0) // 調整寬度為32，等比縮放(因為高度為0)
-	.Build(); // 建立解碼器
- 
-using (var outputFile = File.Open("output.png", FileMode.Create))
-using (var inputFile = File.Open("input.webp", FileMode.Open)) {
-	encoder.Decode(inputFile, outputFile); // 解碼
+	encoder.Encode(inputFile, outputFile); // encode image
 }
 ```
