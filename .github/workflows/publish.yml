@@ -6,9 +6,29 @@ on:
     - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
+  unit-test:
+    name: UnitTest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore packages
+        run: dotnet restore
+        working-directory: src
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: src
+      - name: Unit Test
+        run: dotnet test --configuration Release --no-build
+        working-directory: src
   publish:
     name: Build Package And Publish to NuGet.org
     runs-on: ubuntu-latest
+    needs: unit-test
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -24,9 +44,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release /p:Version=${VERSION} --no-restore
         working-directory: src/WebPWrapper
-      - name: Unit Test
-        run: dotnet test --configuration Release --no-build
-        working-directory: src
       - name: Pack
         run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
         working-directory: src/WebPWrapper
