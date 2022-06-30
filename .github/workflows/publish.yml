@@ -24,9 +24,9 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release /p:Version=${VERSION} --no-restore
         working-directory: src/WebPWrapper
-      - name: UnitTest
-        run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
-        working-directory: src/WebPWrapper.Test
+      - name: Unit Test
+        run: dotnet test --configuration Release --no-build
+        working-directory: src
       - name: Pack
         run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
         working-directory: src/WebPWrapper
