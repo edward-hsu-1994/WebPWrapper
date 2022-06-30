@@ -18,7 +18,10 @@ jobs:
       - name: Restore packages
         run: dotnet restore
         working-directory: src
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: src
       - name: Unit Test
-        run: dotnet test
+        run: dotnet test --configuration Release --no-build
         working-directory: src
       
