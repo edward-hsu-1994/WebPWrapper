@@ -2,76 +2,78 @@
 using System.Linq.Expressions;
 
 namespace WebPWrapper.Decoder {
+    /// <summary>
+    /// WebP decoder builder
+    /// </summary>
     public interface IWebPDecoderBuilder {
         /// <summary>
-        /// 輸出格式
+        /// Output image format
         /// </summary>
-        /// <param name="format">格式</param> 
+        /// <param name="format">Image format</param> 
         IWebPDecoderBuilder ExportFormat(ExportFormats format);
 
         /// <summary>
-        /// 輸入圖片裁減
+        /// Crop the decoded picture to a rectangle with top-left corner at coordinates (<paramref name="x"/>, <paramref name="y"/>) and size width x height. This cropping area must be fully contained within the source rectangle. The top-left corner will be snapped to even coordinates if needed. This option is meant to reduce the memory needed for cropping large images. Note: the cropping is applied before any scaling.
         /// </summary>
-        /// <param name="x">起始座標X</param>
-        /// <param name="y">起始座標Y</param>
-        /// <param name="width">寬度</param>
-        /// <param name="height">高度</param> 
+        /// <param name="x">Top-left corner X</param>
+        /// <param name="y">Top-left corner Y</param>
+        /// <param name="width">Width</param>
+        /// <param name="height">Height</param> 
         IWebPDecoderBuilder Crop(int x, int y, int width, int height);
 
         /// <summary>
-        /// 縮放圖片，<paramref name="height"/>與<paramref name="width"/>至少一者非0，如果其中一值為0則等比例縮放
+        /// Rescale the decoded picture. At least one of <paramref name="height"/> or <paramref name="width"/> is non-zero, and if one of the values is zero then the scaling is equal
         /// </summary>
-        /// <param name="width">寬度</param>
-        /// <param name="height">寬度</param> 
+        /// <param name="width">Width</param>
+        /// <param name="height">Height</param> 
         IWebPDecoderBuilder Resize(int width, int height);
 
         /// <summary>
-        /// 容許多執行序
+        /// Use multi-threading for decoding, if possible.
         /// </summary>
         IWebPDecoderBuilder MultiThread();
 
         /// <summary>
-        /// 停用ASM優化
+        /// Disable all assembly optimizations.
         /// </summary>
         IWebPDecoderBuilder DisableAssemblyOptimization();
 
         /// <summary>
-        /// 禁止濾波過程
+        /// Don't use the in-loop filtering process even if it is required by the bitstream. This may produce visible blocks on the non-compliant output, but it will make the decoding faster.
         /// </summary> 
         IWebPDecoderBuilder NoFilter();
 
         /// <summary>
-        /// 禁止YUV420升級器
+        /// Don't use the fancy upscaler for YUV420. This may lead to jaggy edges (especially the red ones), but should be faster.
         /// </summary>
         IWebPDecoderBuilder NoFancy();
 
         /// <summary>
-        /// 抖動強度，抖動是應用於有損壓縮中的色度分量的後處理效果。它有助於平滑漸變並避免條帶偽影
+        /// Specify a dithering strength between 0 and 100. Dithering is a post-processing effect applied to chroma components in lossy compression. It helps by smoothing gradients and avoiding banding artifacts.
         /// </summary>
-        /// <param name="strength">強度，最小0，最大100</param> 
+        /// <param name="strength">Dithering strength(0~100)</param> 
         IWebPDecoderBuilder Dither(int strength);
 
         /// <summary>
-        /// 垂直翻轉
+        /// Flip decoded image vertically (can be useful for OpenGL textures for instance).
         /// </summary>
-        /// <returns></returns>
         IWebPDecoderBuilder Flip();
 
         /// <summary>
-        /// 重設回預設值
+        /// Reset
         /// </summary>
         IWebPDecoderBuilder Reset();
 
         /// <summary>
-        /// 建構WebP解碼器
+        /// Make WeP Decoder instance.
         /// </summary>
-        /// <returns>WebP解碼器</returns>
+        /// <returns>Web Decoder instance</returns>
         IWebPDecoder Build();
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>CLI arguments</returns>
         string GetCurrentArguments();
     }
 }

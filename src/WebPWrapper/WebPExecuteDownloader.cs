@@ -8,44 +8,74 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Compression;
 
-namespace WebPWrapper {
-    public static class WebPExecuteDownloader {
-        public const string _windowsUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-windows-x64.zip";
-        public const string _linuxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-linux-x86-64.tar.gz";
-        public const string _osxUrl = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-mac-x86-64.tar.gz";
+namespace WebPWrapper
+{
+    /// <summary>
+    /// WebP Cli downloader
+    /// </summary>
+    public static class WebPExecuteDownloader
+    {
+        public const string WELL_KNOWN_WINDOWS_CLI_URL =
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-windows-x64.zip";
 
-        public static async Task DownloadAsync(bool ignoreIfExtsis = true) {
+        public const string WELL_KNOWN_LINUX_CLI_URL =
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-linux-x86-64.tar.gz";
+
+        public const string WELL_KNOWN_OSX_CLI_URL =
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-mac-x86-64.tar.gz";
+
+        /// <summary>
+        /// Download CLI binary file.
+        /// </summary>
+        /// <param name="ignoreIfExtsis">When the CLI already exists, it will not be downloaded</param>
+        /// <returns></returns>
+        /// <exception cref="PlatformNotSupportedException"></exception>
+        public static async Task DownloadAsync(bool ignoreIfExtsis = true)
+        {
             string downloadUrl = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                downloadUrl = _windowsUrl;
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                downloadUrl = _linuxUrl;
-            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                downloadUrl = _osxUrl;
-            } else {
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                downloadUrl = WELL_KNOWN_WINDOWS_CLI_URL;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                downloadUrl = WELL_KNOWN_LINUX_CLI_URL;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                downloadUrl = WELL_KNOWN_OSX_CLI_URL;
+            }
+            else
+            {
                 throw new PlatformNotSupportedException();
             }
 
-            await Task.Run(async () => {
-                var http = new HttpClient();
+            await Task.Run(async () =>
+            {
+                using var http = new HttpClient();
 
                 var webpCliDownloadStream = await http.GetStreamAsync(downloadUrl);
 
                 var webpCliRootDirectoryPath = Path.Combine(Path.GetFullPath("."), "webp");
 
-                if (Directory.Exists(webpCliRootDirectoryPath)) {
-                    if (ignoreIfExtsis) {
+                if (Directory.Exists(webpCliRootDirectoryPath))
+                {
+                    if (ignoreIfExtsis)
+                    {
                         return;
                     }
+
                     Directory.Delete(webpCliRootDirectoryPath, true);
                 }
 
                 // Create WebP CLI root directory
                 Directory.CreateDirectory(webpCliRootDirectoryPath);
-                
+
                 // Saving WebP Cli
                 var origionalDownloadWebCliFilePath = Path.GetTempFileName();
-                using (var origionalDownloadWebCliFileStream = File.Open(origionalDownloadWebCliFilePath, FileMode.OpenOrCreate))
+                using (var origionalDownloadWebCliFileStream =
+                       File.Open(origionalDownloadWebCliFilePath, FileMode.OpenOrCreate))
                 {
                     await webpCliDownloadStream.CopyToAsync(origionalDownloadWebCliFileStream);
                 }
@@ -56,7 +86,8 @@ namespace WebPWrapper {
                     var webpCliTarFilePath = Path.GetTempFileName();
                     using (var webpCliTarGzFileStream = File.Open(origionalDownloadWebCliFilePath, FileMode.Open))
                     using (var webpCliTarFileStream = File.Open(webpCliTarFilePath, FileMode.OpenOrCreate))
-                    using (var downloadedWebPCliTarStream = new GZipStream(webpCliTarGzFileStream, CompressionMode.Decompress))
+                    using (var downloadedWebPCliTarStream =
+                           new GZipStream(webpCliTarGzFileStream, CompressionMode.Decompress))
                     {
                         await downloadedWebPCliTarStream.CopyToAsync(webpCliTarFileStream);
                     }
@@ -65,7 +96,7 @@ namespace WebPWrapper {
                     File.Move(webpCliTarFilePath, origionalDownloadWebCliFilePath);
 
                     TarFile.ExtractToDirectory(origionalDownloadWebCliFilePath, webpCliRootDirectoryPath, null);
-                    
+
                     var executeFilesList = Exec($"find {webpCliRootDirectoryPath} | grep bin/")
                         .Split(new char[] { '\r', '\n' },
                             StringSplitOptions.RemoveEmptyEntries);
@@ -83,13 +114,25 @@ namespace WebPWrapper {
                 File.Delete(origionalDownloadWebCliFilePath);
             });
         }
-        
+
+        /// <summary>
+        /// Download CLI binary file
+        /// </summary>
+        /// <param name="ignoreIfExtsis">When the CLI already exists, it will not be downloaded</param>
+        public static void Download(bool ignoreIfExtsis = true)
+        {
+            DownloadAsync(ignoreIfExtsis).GetAwaiter().GetResult();
+        }
+
         // Copy From : https://stackoverflow.com/questions/45132081/file-permissions-on-linux-unix-with-net-core
-        private static string Exec(string cmd) {
+        private static string Exec(string cmd)
+        {
             var escapedArgs = cmd.Replace("\"", "\\\"");
 
-            var process = new Process {
-                StartInfo = new ProcessStartInfo {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -99,12 +142,8 @@ namespace WebPWrapper {
                 }
             };
             string stdout = "";
-            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
-                stdout += e.Data + "\r\n";
-            };
-            process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
-                stdout += e.Data + "\r\n";
-            };
+            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => { stdout += e.Data + "\r\n"; };
+            process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => { stdout += e.Data + "\r\n"; };
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardOutput = true;
 
@@ -114,10 +153,6 @@ namespace WebPWrapper {
             process.WaitForExit();
 
             return stdout;
-        }
-
-        public static void Download(bool ignoreIfExtsis = true) {
-            DownloadAsync(ignoreIfExtsis).GetAwaiter().GetResult();
         }
     }
 }

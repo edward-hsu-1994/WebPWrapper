@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace WebPWrapper.Decoder {
     /// <summary>
-    /// WebP解碼器
+    /// WebP decoder
     /// </summary>
     public interface IWebPDecoder {
         /// <summary>
-        /// 解碼
+        /// Decode.
         /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        /// <param name="input">Input WebP image</param>
+        /// <param name="output">Output image</param>
         Task DecodeAsync(Stream input, Stream output);
 
         /// <summary>
-        /// 解碼
+        /// Decode.
         /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        /// <param name="input">Input WebP image</param>
+        /// <param name="output">Output image</param>
         void Decode(Stream input, Stream output);
     }
 }

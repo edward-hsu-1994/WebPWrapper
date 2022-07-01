@@ -5,6 +5,9 @@ using System.Text;
 
 namespace WebPWrapper
 {
+    /// <summary>
+    /// Tar Helper
+    /// </summary>
     internal class TarFile
     {
         public static void ExtractToDirectory(

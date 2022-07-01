@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace WebPWrapper.Decoder {
+    /// <summary>
+    /// Default WebP decoder
+    /// </summary>
     public class WebPDecoder : IWebPDecoder {
         private string _executeFilePath;
         private string _arguments;
@@ -13,12 +16,7 @@ namespace WebPWrapper.Decoder {
             _executeFilePath = executeFilePath;
             _arguments = arguments;
         }
-
-        /// <summary>
-        /// 解碼
-        /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        
         public void Decode(Stream input, Stream output) {
             var inputFile = Path.GetTempFileName();
             var outputFile = Path.GetTempFileName();
@@ -71,12 +69,7 @@ namespace WebPWrapper.Decoder {
                 File.Delete(outputFile);
             }
         }
-
-        /// <summary>
-        /// 解碼
-        /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        
         public async Task DecodeAsync(Stream input, Stream output) {
             await Task.Run(() => Decode(input, output));
         }
