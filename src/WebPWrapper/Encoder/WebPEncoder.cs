@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WebPWrapper.Encoder {
     /// <summary>
-    /// WebP編碼器
+    /// Default WebP encoder
     /// </summary>
     public class WebPEncoder : IWebPEncoder {
         private string _executeFilePath;

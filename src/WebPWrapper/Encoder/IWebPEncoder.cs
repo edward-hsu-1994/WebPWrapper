@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace WebPWrapper.Encoder {
     /// <summary>
-    /// WebP編碼器
+    /// WebP encoder
     /// </summary>
     public interface IWebPEncoder {
         /// <summary>
-        /// 編碼
+        /// Encode.
         /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        /// <param name="input">Input image</param>
+        /// <param name="output">Output WebP image</param>
         Task EncodeAsync(Stream input, Stream output);
 
         /// <summary>
-        /// 編碼
+        /// Encode.
         /// </summary>
-        /// <param name="input">輸入值</param>
-        /// <param name="output">輸出值</param>
+        /// <param name="input">Input image</param>
+        /// <param name="output">Output WebP image</param>
         void Encode(Stream input, Stream output);
     }
 }

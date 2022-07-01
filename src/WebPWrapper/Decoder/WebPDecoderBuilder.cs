@@ -21,6 +21,12 @@ namespace WebPWrapper.Decoder {
         public const string _linuxDir = "libwebp-1.2.2-linux-x86-64";
         public const string _osxDir = "libwebp-1.2.2-mac-x86-64";
 
+        /// <summary>
+        /// Create <see cref="WebPDecoderBuilder"/>
+        /// </summary>
+        /// <param name="executeFilePath">Cli file path.</param>
+        /// <exception cref="PlatformNotSupportedException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public WebPDecoderBuilder(string executeFilePath = null) {
             _executeFilePath = executeFilePath;
             if (_executeFilePath == null) {

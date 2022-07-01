@@ -4,25 +4,26 @@ using System.Drawing;
 using System.Linq;
 
 namespace WebPWrapper.Encoder {
+    /// <summary>
+    /// Alpha configuration
+    /// </summary>
     public class AlphaConfiguration {
-        /// <summary>
-        /// 建構中的參數暫存
-        /// </summary>
+        // CLI temp arguments
         private List<(string key, string value)> _arguments = new List<(string key, string value)>();
 
         internal AlphaConfiguration() { }
 
         /// <summary>
-        /// Alpha過濾方法
+        /// Specify the predictive filtering method for the alpha plane. One of none, fast or best, in increasing complexity and slowness order. Internally, alpha filtering is performed using four possible predictions (none, horizontal, vertical, gradient). The best mode will try each mode in turn and pick the one which gives the smaller size. The fast mode will just try to form an a priori guess without testing all modes.
         /// </summary>
-        /// <param name="filter">過濾方法</param> 
+        /// <param name="filter">Filtering method. Default is <see cref="AlphaFilters.Fast"/></param> 
         public AlphaConfiguration Filter(AlphaFilters filter) {
             _arguments.Add((key: "-alpha_filter", value: filter.ToString().ToLower()));
             return this;
         }
 
         /// <summary>
-        /// 禁止Alpha壓縮
+        /// No compression
         /// </summary>
         public AlphaConfiguration DisableCompression() {
             _arguments.Add((key: "-alpha_method", value: ""));
@@ -30,10 +31,9 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 透明處理
+        /// Transparent process
         /// </summary>
-        /// <param name="process">處理方法</param>
-        /// <param name="blendColor">混合顏色，此選項在<paramref name="process"/>為<see cref="TransparentProcesses.Blend"/>的情況下才作用</param>
+        /// <param name="process">Process method</param>
         public AlphaConfiguration TransparentProcess(
             TransparentProcesses process) {
             switch (process) {
@@ -51,10 +51,10 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 透明處理
+        /// Transparent process. (This method only works when <paramref name="process"/> = <see cref="TransparentProcesses.Blend"/>)
         /// </summary>
-        /// <param name="process">處理方法</param>
-        /// <param name="blendColor">混合顏色，此選項在<paramref name="process"/>為<see cref="TransparentProcesses.Blend"/>的情況下才作用</param>
+        /// <param name="process">Process method</param>
+        /// <param name="blendColor">Blend color</param>
         public AlphaConfiguration TransparentProcess(
             TransparentProcesses process,
             Color blendColor) {
@@ -78,9 +78,9 @@ namespace WebPWrapper.Encoder {
 
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>Cli arguments</returns>
         internal string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {

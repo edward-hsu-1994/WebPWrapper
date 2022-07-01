@@ -65,9 +65,9 @@ namespace WebPWrapper.Decoder {
         IWebPDecoderBuilder Reset();
 
         /// <summary>
-        /// Make WeP Decoder instance.
+        /// Make WeP decoder instance.
         /// </summary>
-        /// <returns>Web Decoder instance</returns>
+        /// <returns>Web decoder instance</returns>
         IWebPDecoder Build();
 
         /// <summary>

@@ -1,15 +1,15 @@
 ﻿namespace WebPWrapper.Encoder {
     public enum TransparentProcesses {
         /// <summary>
-        /// 維持原樣
+        /// Preserve RGB values in transparent area.
         /// </summary>
         Exact,
         /// <summary>
-        /// 移除
+        /// Using this option will discard the alpha channel.
         /// </summary>
         Remove,
         /// <summary>
-        /// 混合指定背景
+        /// This option blends the alpha channel (if present).
         /// </summary>
         Blend
     }

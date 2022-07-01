@@ -2,50 +2,50 @@
 using System.Linq;
 
 namespace WebPWrapper.Encoder {
+    /// <summary>
+    /// NearLosslessFilter configuration
+    /// </summary>
     public class NearLosslessFilterConfiguration {
-        /// <summary>
-        /// 建構中的參數暫存
-        /// </summary>
+        // temp cli arguments
         private List<(string key, string value)> _arguments = new List<(string key, string value)>();
 
         internal NearLosslessFilterConfiguration() { }
 
         /// <summary>
-        /// 自動濾波
+        /// Turns auto-filter on. This algorithm will spend additional time optimizing the filtering strength to reach a well-balanced quality.
         /// </summary>
         public void Auto() {
             _arguments.Add((key: "-af", value: null));
         }
 
         /// <summary>
-        /// 濾波強度，預設使用強過濾
+        /// Specify the strength of the deblocking filter.
         /// </summary>
-        /// <param name="strength">強度，最小0，最大100，數值越高圖片越平滑，通常介於20~50</param>
+        /// <param name="strength">Strength between 0 (no filtering) and 100 (maximum filtering). A value of 0 will turn off any filtering. Higher value will increase the strength of the filtering process applied after decoding the picture. The higher the value the smoother the picture will appear. Typical values are usually in the range of 20 to 50.</param>
         public NearLosslessFilterConfiguration Strength(int strength) {
             _arguments.Add((key: "-f", value: strength.ToString()));
             return this;
         }
 
         /// <summary>
-        /// 過濾清晰度
+        /// Specify the sharpness of the filtering (if used).
         /// </summary>
-        /// <param name="sharpness">清晰度，最小0，最大7，越小越銳利</param> 
+        /// <param name="sharpness">Sharpness range is 0 (sharpest) to 7 (least sharp). Default is 0.</param> 
         public NearLosslessFilterConfiguration Sharpness(int sharpness) {
             _arguments.Add((key: "-sharpness", value: sharpness.ToString()));
             return this;
         }
 
         /// <summary>
-        /// 禁止強過濾
+        /// Disable strong filtering (if filtering is being used thanks to the -f option) and use simple filtering instead.
         /// </summary>
-        /// <returns></returns>
         public NearLosslessFilterConfiguration NoStrong() {
             _arguments.Add((key: "-nostrong", value: null));
             return this;
         }
 
         /// <summary>
-        /// 更準確和更清晰的RGB -> YUV轉換，此過程比默認的“快速”RGB-> YUV轉換慢
+        /// Use more accurate and sharper RGB->YUV conversion if needed. Note that this process is slower than the default 'fast' RGB->YUV conversion.
         /// </summary>
         public NearLosslessFilterConfiguration SharpYUV() {
             _arguments.Add((key: "-sharp_yuv", value: null));
@@ -53,19 +53,19 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 指定空間噪聲整形的幅度
+        /// Specify the amplitude of the spatial noise shaping. Spatial noise shaping (or sns for short) refers to a general collection of built-in algorithms used to decide which area of the picture should use relatively less bits, and where else to better transfer these bits.
         /// </summary>
-        /// <param name="sns">整形幅度，最小0，最大100，0為關閉，100最大效果，預設50</param> 
+        /// <param name="sns">SNS range goes from 0 (algorithm is off) to 100 (the maximal effect). The default value is 50.</param> 
         public NearLosslessFilterConfiguration SNS(int sns) {
             _arguments.Add((key: "-sns", value: sns.ToString()));
             return this;
         }
 
         /// <summary>
-        /// 指定空間噪聲整形的幅度
+        /// Specify the amplitude of the spatial noise shaping. Spatial noise shaping (or sns for short) refers to a general collection of built-in algorithms used to decide which area of the picture should use relatively less bits, and where else to better transfer these bits.
         /// </summary>
-        /// <param name="sns">整形幅度，最小0，最大100，0為關閉，100最大效果，預設50</param>
-        /// <param name="segments">SNS算法分區數，最小1，最大4，預設4</param>
+        /// <param name="sns">SNS range goes from 0 (algorithm is off) to 100 (the maximal effect). The default value is 50.</param> 
+        /// <param name="segments">Change the number of partitions to use during the segmentation of the sns algorithm. Segments should be in range 1 to 4. Default value is 4. This option has no effect for methods 3 and up, unless -low_memory is used.</param>
         public NearLosslessFilterConfiguration SNS(int sns, int segments) {
             _arguments.Add((key: "-sns", value: sns.ToString()));
             _arguments.Add((key: "-segments", value: segments.ToString()));
@@ -73,18 +73,18 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 通過限制某些宏塊使用的位數來降低質量
+        /// Degrade quality by limiting the number of bits used by some macroblocks.
         /// </summary>
-        /// <param name="limit">位數，最小0，最大100，0表示未降級，100表示完全降級</param>
+        /// <param name="limit">Range is 0 (no degradation, the default) to 100 (full degradation). </param>
         public NearLosslessFilterConfiguration PartitionLimit(int limit) {
             _arguments.Add((key: "-partition_limit", value: limit.ToString()));
             return this;
         }
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>CLI arguments</returns>
         internal string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {

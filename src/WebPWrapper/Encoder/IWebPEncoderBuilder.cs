@@ -4,74 +4,74 @@ using System.Linq.Expressions;
 namespace WebPWrapper.Encoder {
     public interface IWebPEncoderBuilder {
         /// <summary>
-        /// 輸入圖片裁減
+        /// Crop the decoded picture to a rectangle with top-left corner at coordinates (<paramref name="x"/>, <paramref name="y"/>) and size width x height. This cropping area must be fully contained within the source rectangle. The top-left corner will be snapped to even coordinates if needed. This option is meant to reduce the memory needed for cropping large images. Note: the cropping is applied before any scaling.
         /// </summary>
-        /// <param name="x">起始座標X</param>
-        /// <param name="y">起始座標Y</param>
-        /// <param name="width">寬度</param>
-        /// <param name="height">高度</param> 
+        /// <param name="x">Top-left corner X</param>
+        /// <param name="y">Top-left corner Y</param>
+        /// <param name="width">Width</param>
+        /// <param name="height">Height</param> 
         IWebPEncoderBuilder Crop(int x, int y, int width, int height);
 
         /// <summary>
-        /// 縮放圖片，<paramref name="height"/>與<paramref name="width"/>至少一者非0，如果其中一值為0則等比例縮放
+        /// Rescale the decoded picture. At least one of <paramref name="height"/> or <paramref name="width"/> is non-zero, and if one of the values is zero then the scaling is equal
         /// </summary>
-        /// <param name="width">寬度</param>
-        /// <param name="height">寬度</param> 
+        /// <param name="width">Width</param>
+        /// <param name="height">Height</param> 
         IWebPEncoderBuilder Resize(int width, int height);
 
         /// <summary>
-        /// 容許多執行序
+        /// Use multi-threading for decoding, if possible.
         /// </summary>
         IWebPEncoderBuilder MultiThread();
 
         /// <summary>
-        /// 降低記憶體使用
+        /// Reduce memory usage of lossy encoding by saving four times the compressed size (typically). This will make the encoding slower and the output slightly different in size and distortion.
         /// </summary>
         IWebPEncoderBuilder LowMemory();
 
         /// <summary>
-        /// 複製來源圖片的Metadata
+        /// A comma separated list of metadata to copy from the input to the output if present.
         /// </summary>
         IWebPEncoderBuilder CopyMetadata(params Metadatas[] metadatas);
 
         /// <summary>
-        /// 停用ASM優化
+        /// Disable all assembly optimizations.
         /// </summary>
         IWebPEncoderBuilder DisableAssemblyOptimization();
 
         /// <summary>
-        /// 讀取預設的組態
+        /// Specify a set of pre-defined parameters to suit a particular type of source material.
         /// </summary>
-        /// <param name="profile">組態類型</param> 
+        /// <param name="profile">Profile</param> 
         IWebPEncoderBuilder LoadPresetProfile(PresetProfiles profile);
 
         /// <summary>
-        /// 設定壓縮組態
+        /// Compression configuration.
         /// </summary>
-        /// <param name="config">壓縮組態設定</param> 
+        /// <param name="config">Config</param> 
         IWebPEncoderBuilder CompressionConfig(Expression<Action<CompressionConfiguration>> config);
 
         /// <summary>
-        /// 設定Alpha組態
+        /// Alpha configuration.
         /// </summary>
-        /// <param name="config">Alpha組態設定</param>
+        /// <param name="config">Config</param>
         IWebPEncoderBuilder AlphaConfig(Expression<Action<AlphaConfiguration>> config);
 
         /// <summary>
-        /// 重設回預設值
+        /// Reset.
         /// </summary>
         IWebPEncoderBuilder Reset();
 
         /// <summary>
-        /// 建構WebP編碼器
+        /// Make WeP encoder instance.
         /// </summary>
-        /// <returns>WebP編碼器</returns>
+        /// <returns>Web encoder instance</returns>
         IWebPEncoder Build();
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>CLI arguments</returns>
         string GetCurrentArguments();
     }
 }

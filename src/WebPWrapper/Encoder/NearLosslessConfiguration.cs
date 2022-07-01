@@ -4,56 +4,55 @@ using System.Linq;
 using System.Linq.Expressions;
 
 namespace WebPWrapper.Encoder {
+    /// <summary>
+    /// NearLossless configuration
+    /// </summary>
     public class NearLosslessConfiguration {
-        /// <summary>
-        /// 建構中的參數暫存
-        /// </summary>
+        // temp cli arguments
         private List<(string key, string value)> _arguments = new List<(string key, string value)>();
 
         internal NearLosslessConfiguration() { }
 
         /// <summary>
-        /// 嘗試壓縮至指定大小
+        /// Specify a target size (in bytes) to try and reach for the compressed output. The compressor will make several passes of partial encoding in order to get as close as possible to this target.
         /// </summary>
-        /// <param name="size">大小(位元組)</param>
-        /// <returns></returns>
+        /// <param name="size">Size(bytes)</param>
         public void Size(int size) {
             _arguments.Add((key: "-size", value: size.ToString()));
         }
 
         /// <summary>
-        /// 嘗試壓縮至指定大小
+        /// Specify a target size (in bytes) to try and reach for the compressed output. The compressor will make several passes of partial encoding in order to get as close as possible to this target.
         /// </summary>
-        /// <param name="size">大小(位元組)</param>
-        /// <param name="pass">最大處理次數，範圍1~10，預設1</param>
-        /// <returns></returns>
+        /// <param name="size">Size(bytes)</param>
+        /// <param name="pass">Set a maximum number of passes to use during the dichotomy used by Size. Maximum value is 10, default is 6.</param>
         public void Size(int size, int pass) {
             _arguments.Add((key: "-size", value: size.ToString()));
             _arguments.Add((key: "-pass", value: pass.ToString()));
         }
 
         /// <summary>
-        /// 嘗試壓縮至指定PSNR
+        /// Specify a target PSNR (in dB) to try and reach for the compressed output. The compressor will make several passes of partial encoding in order to get as close as possible to this target.
         /// </summary>
-        /// <param name="dB">PSNR值</param>
+        /// <param name="dB">PSNR</param>
         public void PSNR(int dB) {
             _arguments.Add((key: "-psnr", value: dB.ToString()));
         }
 
         /// <summary>
-        /// 嘗試壓縮至指定PSNR
+        /// Specify a target PSNR (in dB) to try and reach for the compressed output. The compressor will make several passes of partial encoding in order to get as close as possible to this target.
         /// </summary>
-        /// <param name="dB">PSNR值</param>
-        /// <param name="pass">最大處理次數，範圍1~10，預設1</param>
+        /// <param name="dB">PSNR</param>
+        /// <param name="pass">Set a maximum number of passes to use during the dichotomy used by PSNR. Maximum value is 10, default is 6.</param>
         public void PSNR(int dB, int pass = 1) {
             _arguments.Add((key: "-psnr", value: dB.ToString()));
             _arguments.Add((key: "-pass", value: pass.ToString()));
         }
 
         /// <summary>
-        /// 設定壓縮品質
+        /// Specify the compression factor for RGB channels between 0 and 100.
         /// </summary>
-        /// <param name="quality">範圍自0~100，0最低，100最高，預設為75，較小的數值將產生較差的品質</param>
+        /// <param name="quality">In case of lossy compression (default), a small factor produces a smaller file with lower quality. Best quality is achieved by using a value of 100. Default is 75.</param>
         public NearLosslessConfiguration Quality(int quality) {
             if (quality < 0 || quality > 100) {
                 throw new ArgumentOutOfRangeException(nameof(quality));
@@ -64,9 +63,9 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 設定透明壓縮品質
+        /// Specify the compression factor for alpha compression.
         /// </summary>
-        /// <param name="quality">範圍自0~100，0最低，100最高</param>
+        /// <param name="quality">Quality between 0 and 100. Lossless compression of alpha is achieved using a value of 100, while the lower values result in a lossy compression. The default is 100.</param>
         public NearLosslessConfiguration AlphaQuality(int quality) {
             if (quality < 0 || quality > 100) {
                 throw new ArgumentOutOfRangeException(nameof(quality));
@@ -77,7 +76,7 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 更改內部參數映射以更好地匹配JPEG壓縮的預期大小，但視覺失真較小。
+        /// Change the internal parameter mapping to better match the expected size of JPEG compression.
         /// </summary>
         public NearLosslessConfiguration JPEGLike() {
             _arguments.Add((key: "-jpeg_like", value: null));
@@ -85,18 +84,17 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 在RGBA-> YUVA轉換期間觸發與質量相關的偽隨機抖動
+        /// Specify some pre-processing steps.
         /// </summary>
         public NearLosslessConfiguration PseudoRandomDithering() {
             _arguments.Add((key: "-pre", value: "2"));
             return this;
         }
-
-
+        
         /// <summary>
-        /// 指定壓縮方法，此參數控制編碼速度以及壓縮文件大小與品質之間的關係
+        /// Specify the compression method to use. This parameter controls the trade off between encoding speed and the compressed file size and quality.
         /// </summary>
-        /// <param name="method">範圍自0~6，0最快，6最慢，預設為4，較小的數值將產生更大的文件</param>
+        /// <param name="method">Possible values range from 0 to 6. Default value is 4. When higher values are used, the encoder will spend more time inspecting additional encoding possibilities and decide on the quality gain. Lower value can result in faster processing time at the expense of larger file size and lower compression quality.</param>
         public NearLosslessConfiguration Method(int method) {
             if (method < 0 || method > 6) {
                 throw new ArgumentOutOfRangeException(nameof(method));
@@ -106,6 +104,11 @@ namespace WebPWrapper.Encoder {
             return this;
         }
 
+        /// <summary>
+        /// NearLosslessFilter configuration.
+        /// </summary>
+        /// <param name="config">Config</param>
+        /// <returns></returns>
         public NearLosslessConfiguration Filter(Expression<Action<NearLosslessFilterConfiguration>> config) {
             var _nearLosslessFilterConfiguration = new NearLosslessFilterConfiguration();
             config.Compile().Invoke(_nearLosslessFilterConfiguration);
@@ -115,9 +118,9 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>CLI arguments</returns>
         internal string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {

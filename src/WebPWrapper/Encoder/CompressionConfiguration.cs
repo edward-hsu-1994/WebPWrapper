@@ -4,18 +4,19 @@ using System.Linq;
 using System.Linq.Expressions;
 
 namespace WebPWrapper.Encoder {
+    /// <summary>
+    /// Compression configuration
+    /// </summary>
     public class CompressionConfiguration {
-        /// <summary>
-        /// 建構中的參數暫存
-        /// </summary>
+        // temp cli arguments 
         private List<(string key, string value)> _arguments = new List<(string key, string value)>();
 
         internal CompressionConfiguration() { }
 
         /// <summary>
-        /// 無損壓縮
+        /// Use lossless compression.
         /// </summary>
-        /// <param name="config">壓縮設定</param>
+        /// <param name="config">Config</param>
         public void Lossless(Expression<Action<LosslessConfiguration>> config) {
             var _losslessCompressionConfiguration = new LosslessConfiguration();
             config.Compile().Invoke(_losslessCompressionConfiguration);
@@ -28,10 +29,10 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 接近無損壓縮
+        /// Specify the level of near-lossless image preprocessing. This option adjusts pixel values to help compressibility, but has minimal impact on the visual quality. It triggers lossless compression mode automatically.
         /// </summary>
-        /// <param name="config">壓縮設定</param>
-        /// <param name="level">等級，最小0，最大100效果等同-lossless</param>
+        /// <param name="config">Config</param>
+        /// <param name="level">Level(0~100)</param>
         public void NearLossless(int level, Expression<Action<NearLosslessConfiguration>> config) {
             var _nearLosslessCompressionConfiguration = new NearLosslessConfiguration();
             config.Compile().Invoke(_nearLosslessCompressionConfiguration);
@@ -44,9 +45,9 @@ namespace WebPWrapper.Encoder {
         }
 
         /// <summary>
-        /// 取得目前CLI參數
+        /// Get current CLI arguments.
         /// </summary>
-        /// <returns>CLI參數</returns>
+        /// <returns>CLI arguments</returns>
         internal string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {
