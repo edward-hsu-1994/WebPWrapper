@@ -1,6 +1,6 @@
 # WebPWrapper
 
-[![Unit Test](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](#) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
+[![Unit Test](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
 
 This library is a wrapper for WebP CLI. 
 Provides a simple CLI parameter builder, making it easier to use WebP in development
@@ -41,3 +41,8 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 	encoder.Encode(inputFile, outputFile); // encode image
 }
 ```
+
+## Suggestions
+
+For containerized services, I do not recommend downloading CLI in Runtime.
+I recommend installing the CLI when building the docker image. Then set `executeFilePath` in builder class's constructs
