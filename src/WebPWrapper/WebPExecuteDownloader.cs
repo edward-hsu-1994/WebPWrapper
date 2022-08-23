@@ -24,6 +24,9 @@ namespace WebPWrapper
         public const string WELL_KNOWN_OSX_CLI_URL =
             "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-mac-x86-64.tar.gz";
 
+        public const string WELL_KNOWN_OSX_ARM_CLI_URL =
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.2.2-mac-arm64.tar.gz";
+
         /// <summary>
         /// Download CLI binary file.
         /// </summary>
@@ -41,6 +44,10 @@ namespace WebPWrapper
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 downloadUrl = WELL_KNOWN_LINUX_CLI_URL;
+            }
+            else if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64 && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                downloadUrl = WELL_KNOWN_OSX_ARM_CLI_URL;
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {

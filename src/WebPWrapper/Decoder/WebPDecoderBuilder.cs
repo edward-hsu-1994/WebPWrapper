@@ -20,6 +20,7 @@ namespace WebPWrapper.Decoder {
         public const string _windowsDir = "libwebp-1.2.2-windows-x64";
         public const string _linuxDir = "libwebp-1.2.2-linux-x86-64";
         public const string _osxDir = "libwebp-1.2.2-mac-x86-64";
+        public const string _osxARMDir = "libwebp-1.2.2-mac-arm64";
 
         /// <summary>
         /// Create <see cref="WebPDecoderBuilder"/>
@@ -34,7 +35,12 @@ namespace WebPWrapper.Decoder {
                     _executeFilePath = $"webp/{_windowsDir}/bin/dwebp.exe";
                 } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
                     _executeFilePath = $"webp/{_linuxDir}/bin/dwebp";
-                } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                }
+                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    _executeFilePath = $"webp/{_osxARMDir}/bin/dwebp";
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                     _executeFilePath = $"webp/{_osxDir}/bin/dwebp";
                 } else {
                     throw new PlatformNotSupportedException();
