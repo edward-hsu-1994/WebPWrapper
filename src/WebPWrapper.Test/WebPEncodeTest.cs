@@ -109,5 +109,48 @@ namespace WebPWrapper.Test {
                 encoder.Encode(inputFile, outputFile);
             }
         }
+
+        [Fact]
+        public void Case5()
+        {
+            var builder = new WebPEncoderBuilder();
+
+            var encoder = builder
+                .Resize(0,600)
+                .CompressionConfig(x => x.Lossy(y => y.Quality(80)))
+                .Build();
+
+            if (!Directory.Exists("Output"))
+            {
+                Directory.CreateDirectory("Output");
+            }
+
+            using (var outputFile = File.Open("Output/openCC-LossyResize.webp", FileMode.Create))
+            using (var inputFile = File.Open("Samples/openCC.png", FileMode.Open))
+            {
+                encoder.Encode(inputFile, outputFile);
+            }
+        }
+
+        [Fact]
+        public void Case6()
+        {
+            var builder = new WebPEncoderBuilder();
+
+            var encoder = builder
+                .CompressionConfig(x => x.Lossy(y => y.Quality(10)))
+                .Build();
+
+            if (!Directory.Exists("Output"))
+            {
+                Directory.CreateDirectory("Output");
+            }
+
+            using (var outputFile = File.Open("Output/kaohsiung-Lossy10.webp", FileMode.Create))
+            using (var inputFile = File.Open("Samples/kaohsiung.jpg", FileMode.Open))
+            {
+                encoder.Encode(inputFile, outputFile);
+            }
+        }
     }
 }
