@@ -43,6 +43,20 @@ namespace WebPWrapper.Encoder {
                 value: _nearLosslessCompressionConfiguration.GetCurrentArguments()
             ));
         }
+        /// <summary>
+        /// Use lossy compression.
+        /// </summary>
+        /// <param name="config">Config</param>
+        public void Lossy(Expression<Action<LossyConfiguration>> config)
+        {
+            var _lossyCompressionConfiguration = new LossyConfiguration();
+            config.Compile().Invoke(_lossyCompressionConfiguration);
+
+            _arguments.Add((
+                key: nameof(LossyConfiguration),
+                value: _lossyCompressionConfiguration.GetCurrentArguments()
+            ));
+        }
 
         /// <summary>
         /// Get current CLI arguments.
