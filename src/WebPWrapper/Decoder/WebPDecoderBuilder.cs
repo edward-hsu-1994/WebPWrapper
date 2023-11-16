@@ -17,10 +17,10 @@ namespace WebPWrapper.Decoder {
         private string _executeFilePath;
 
         // Default CLI path. (If Cli downloaded by WebPExecuteDownloader.
-        public const string _windowsDir = "libwebp-1.2.2-windows-x64";
-        public const string _linuxDir = "libwebp-1.2.2-linux-x86-64";
-        public const string _osxDir = "libwebp-1.2.2-mac-x86-64";
-        public const string _osxARMDir = "libwebp-1.2.2-mac-arm64";
+        public const string _windowsDir = "libwebp-1.3.1-windows-x64";
+        public const string _linuxDir = "libwebp-1.3.1-linux-x86-64";
+        public const string _osxDir = "libwebp-1.3.1-mac-x86-64";
+        public const string _osxARMDir = "libwebp-1.3.1-mac-arm64";
 
         /// <summary>
         /// Create <see cref="WebPDecoderBuilder"/>
@@ -76,57 +76,57 @@ namespace WebPWrapper.Decoder {
             }
             return this;
         }
-        
+
         public IWebPDecoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
-        
+
         public IWebPDecoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
-        
+
         public IWebPDecoderBuilder MultiThread() {
             _arguments.Add((key: "-mt", value: null));
             return this;
         }
-        
+
         public IWebPDecoderBuilder DisableAssemblyOptimization() {
             _arguments.Add((key: "-noasm", value: null));
             return this;
         }
-        
+
         public IWebPDecoderBuilder NoFilter() {
             _arguments.Add((key: "-nofilter", value: null));
             return this;
         }
-        
+
         public IWebPDecoderBuilder NoFancy() {
             _arguments.Add((key: "-nofancy", value: null));
             return this;
         }
-        
+
         public IWebPDecoderBuilder Dither(int strength) {
             _arguments.Add((key: "-dither", value: strength.ToString()));
             return this;
         }
-        
+
         public IWebPDecoderBuilder Flip() {
             _arguments.Add((key: "-flip", value: null));
             return this;
         }
-        
+
         public IWebPDecoderBuilder Reset() {
             _arguments.Clear();
             return this;
         }
-        
+
         public IWebPDecoder Build() {
             var args = GetCurrentArguments();
             return new WebPDecoder(_executeFilePath, args);
         }
-        
+
         public string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {
