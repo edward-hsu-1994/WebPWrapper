@@ -17,10 +17,10 @@ namespace WebPWrapper.Encoder {
         private string _executeFilePath;
 
 
-        public const string _windowsDir = "libwebp-1.3.1-windows-x64";
-        public const string _linuxDir = "libwebp-1.3.1-linux-x86-64";
-        public const string _osxDir = "libwebp-1.3.1-mac-x86-64";
-        public const string _osxARMDir = "libwebp-1.3.1-mac-arm64";
+        public const string _windowsDir = "libwebp-1.3.2-windows-x64";
+        public const string _linuxDir = "libwebp-1.3.2-linux-x86-64";
+        public const string _osxDir = "libwebp-1.3.2-mac-x86-64";
+        public const string _osxARMDir = "libwebp-1.3.2-mac-arm64";
         /// <summary>
         /// Create <see cref="WebPEncoderBuilder"/>
         /// </summary>

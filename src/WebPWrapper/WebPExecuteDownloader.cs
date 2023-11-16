@@ -16,16 +16,16 @@ namespace WebPWrapper
     public static class WebPExecuteDownloader
     {
         public const string WELL_KNOWN_WINDOWS_CLI_URL =
-            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-windows-x64.zip";
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-windows-x64.zip";
 
         public const string WELL_KNOWN_LINUX_CLI_URL =
-            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-linux-x86-64.tar.gz";
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-linux-x86-64.tar.gz";
 
         public const string WELL_KNOWN_OSX_CLI_URL =
-            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-x86-64.tar.gz";
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-mac-x86-64.tar.gz";
 
         public const string WELL_KNOWN_OSX_ARM_CLI_URL =
-            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-arm64.tar.gz";
+            "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-mac-arm64.tar.gz";
 
         /// <summary>
         /// Download CLI binary file.
