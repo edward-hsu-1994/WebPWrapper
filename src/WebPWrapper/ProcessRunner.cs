@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -114,6 +115,73 @@ namespace WebPWrapper {
                 return result;
             }
         }
+        internal static async Task<ProcessResult> RunAsync(string executablePath, IEnumerable<string> arguments, TimeSpan timeout, CancellationToken cancellationToken) {
+            if (string.IsNullOrWhiteSpace(executablePath)) throw new ArgumentException("An executable path is required.", nameof(executablePath));
+            if (arguments == null) throw new ArgumentNullException(nameof(arguments));
+            if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > int.MaxValue) throw new ArgumentOutOfRangeException(nameof(timeout));
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var output = new StringBuilder();
+            var error = new StringBuilder();
+            var outputLock = new object();
+            var errorLock = new object();
+            var exited = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var outputCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var errorCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using (var process = new Process()) {
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.FileName = executablePath;
+                process.StartInfo.Arguments = JoinArguments(arguments);
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, e) => exited.TrySetResult(true);
+                process.OutputDataReceived += (sender, e) => {
+                    if (e.Data == null) outputCompleted.TrySetResult(true);
+                    else lock (outputLock) output.AppendLine(e.Data);
+                };
+                process.ErrorDataReceived += (sender, e) => {
+                    if (e.Data == null) errorCompleted.TrySetResult(true);
+                    else lock (errorLock) error.AppendLine(e.Data);
+                };
+
+                try {
+                    if (!process.Start()) throw new InvalidOperationException("The process did not start.");
+                } catch (Exception ex) {
+                    throw Failure("Failed to start the WebP CLI process.", ProcessFailureKind.StartFailed, executablePath, null, output, outputLock, error, errorLock, ex);
+                }
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                var canceled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                using (cancellationToken.Register(() => {
+                    canceled.TrySetResult(true);
+                    TryKill(process);
+                })) {
+                    var timeoutTask = Task.Delay(timeout);
+                    var completed = await Task.WhenAny(exited.Task, timeoutTask, canceled.Task).ConfigureAwait(false);
+                    var timedOut = completed == timeoutTask;
+                    if (timedOut) TryKill(process);
+                    await exited.Task.ConfigureAwait(false);
+                    await Task.WhenAll(outputCompleted.Task, errorCompleted.Task).ConfigureAwait(false);
+                    if (cancellationToken.IsCancellationRequested) {
+                        var failure = Failure("WebP CLI process execution was canceled.", ProcessFailureKind.Canceled, executablePath, SafeExitCode(process), output, outputLock, error, errorLock);
+                        throw new ProcessExecutionCanceledException(failure, cancellationToken);
+                    }
+                    if (timedOut) {
+                        throw Failure("WebP CLI process exceeded the execution timeout.", ProcessFailureKind.TimedOut, executablePath, SafeExitCode(process), output, outputLock, error, errorLock);
+                    }
+                }
+
+                var result = new ProcessResult(process.ExitCode, GetText(output, outputLock), GetText(error, errorLock));
+                if (result.ExitCode != 0) {
+                    throw new ProcessExecutionException("WebP CLI process exited with a nonzero status.", ProcessFailureKind.NonZeroExit, executablePath, result.ExitCode, result.StandardOutput, result.StandardError);
+                }
+                return result;
+            }
+        }
+
 
         // The builder's existing public argument representation is a whitespace-delimited CLI string.
         // It contains only generated option/value tokens; paths are always supplied separately as arguments.
