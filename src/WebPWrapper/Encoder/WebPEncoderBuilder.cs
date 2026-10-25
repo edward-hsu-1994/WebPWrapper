@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace WebPWrapper.Encoder {
     /// <summary>
@@ -28,25 +26,7 @@ namespace WebPWrapper.Encoder {
         /// <exception cref="PlatformNotSupportedException"></exception>
         /// <exception cref="FileNotFoundException"></exception>
         public WebPEncoderBuilder(string executeFilePath = null) {
-            _executeFilePath = executeFilePath;
-            if (_executeFilePath == null) {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    _executeFilePath = $"webp/{_windowsDir}/bin/cwebp.exe";
-                } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    _executeFilePath = $"webp/{_linuxDir}/bin/cwebp";
-                }
-                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    _executeFilePath = $"webp/{_osxARMDir}/bin/cwebp";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                    _executeFilePath = $"webp/{_osxDir}/bin/cwebp";
-                } else {
-                    throw new PlatformNotSupportedException();
-                }
-                _executeFilePath = Path.Combine(Path.GetFullPath("."), _executeFilePath);
-            }
-
+            _executeFilePath = executeFilePath ?? WebPExecuteDownloader.GetDefaultExecutablePath(encoder: true);
             if (!File.Exists(_executeFilePath)) {
                 throw new FileNotFoundException();
             }
