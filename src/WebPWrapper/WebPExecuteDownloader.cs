@@ -56,13 +56,12 @@ namespace WebPWrapper
         {
             var (downloadUrl, expectedSha256, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
             var installPath = GetDefaultInstallationPath();
-            if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
-                return;
             var installParent = Path.GetDirectoryName(installPath);
             Directory.CreateDirectory(installParent);
 
             using (await AcquireInstallationLockAsync(Path.Combine(installParent, ".webp.install.lock")).ConfigureAwait(false))
             {
+                RecoverInterruptedInstallation(installPath);
                 if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
                     return;
 
@@ -181,7 +180,6 @@ namespace WebPWrapper
             finally
             {
                 TryDeleteFile(archivePath);
-                TryDeleteFile(tarPath);
                 TryDeleteDirectory(stagingPath);
             }
         }
@@ -351,9 +349,73 @@ namespace WebPWrapper
             return unixFileType == 0xA000 || (entry.ExternalAttributes & (int)FileAttributes.ReparsePoint) != 0;
         }
 
-        private static void ReplaceInstallation(string stagingPath, string installPath, string backupPath)
+        internal static async Task RecoverInterruptedInstallationAsync(string installPath)
+        {
+            installPath = Path.GetFullPath(installPath);
+            var parentDirectory = Path.GetDirectoryName(installPath);
+            Directory.CreateDirectory(parentDirectory);
+            using (await AcquireInstallationLockAsync(Path.Combine(parentDirectory, ".webp.install.lock")).ConfigureAwait(false))
+            {
+                RecoverInterruptedInstallation(installPath);
+            }
+        }
+
+        private static void RecoverInterruptedInstallation(string installPath)
+        {
+            var parentDirectory = Path.GetDirectoryName(installPath);
+            foreach (var statePath in Directory.GetFiles(parentDirectory, ".webp-install-*.state"))
+            {
+                var fileName = Path.GetFileName(statePath);
+                var transactionId = fileName.Substring(".webp-install-".Length, fileName.Length - ".webp-install-".Length - ".state".Length);
+                if (!Guid.TryParseExact(transactionId, "N", out _))
+                    continue;
+
+                string recordedInstallPath;
+                try
+                {
+                    recordedInstallPath = File.ReadAllText(statePath);
+                }
+                catch (IOException)
+                {
+                    continue;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(recordedInstallPath, installPath, StringComparison.Ordinal))
+                    continue;
+
+                var backupPath = Path.Combine(parentDirectory, ".webp-backup-" + transactionId);
+                if (!Directory.Exists(installPath) && Directory.Exists(backupPath))
+                {
+                    Directory.Move(backupPath, installPath);
+                }
+                else if (Directory.Exists(installPath) && Directory.Exists(backupPath))
+                {
+                    Directory.Delete(backupPath, true);
+                }
+
+                TryDeleteFile(statePath);
+            }
+        }
+
+        internal static string GetInstallRecoveryStatePath(string installPath, string transactionId)
+        {
+            return Path.Combine(Path.GetDirectoryName(Path.GetFullPath(installPath)), ".webp-install-" + transactionId + ".state");
+        }
+
+        internal static void ReplaceInstallation(string stagingPath, string installPath, string backupPath)
         {
             var hadPreviousInstallation = Directory.Exists(installPath);
+            var transactionId = Path.GetFileName(backupPath).Substring(".webp-backup-".Length);
+            var statePath = GetInstallRecoveryStatePath(installPath, transactionId);
+            using (var state = new FileStream(statePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(state))
+            {
+                writer.Write(Path.GetFullPath(installPath));
+            }
             if (hadPreviousInstallation)
                 Directory.Move(installPath, backupPath);
 
@@ -364,12 +426,16 @@ namespace WebPWrapper
             catch
             {
                 if (hadPreviousInstallation && Directory.Exists(backupPath))
+                {
                     Directory.Move(backupPath, installPath);
+                    TryDeleteFile(statePath);
+                }
                 throw;
             }
 
             if (hadPreviousInstallation)
                 Directory.Delete(backupPath, true);
+            TryDeleteFile(statePath);
         }
 
         private static string ToLowerHex(byte[] bytes)

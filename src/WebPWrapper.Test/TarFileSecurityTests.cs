@@ -141,6 +141,64 @@ namespace WebPWrapper.Test
             Assert.Equal("existing installation", File.ReadAllText(existingFile));
         }
         [Fact]
+        public async Task RecoverInterruptedInstallationAsync_RestoresIdentifiedBackupWithoutNetwork()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            const string transactionId = "0123456789abcdef0123456789abcdef";
+            var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
+            Directory.CreateDirectory(Path.Combine(backupPath, "libwebp", "bin"));
+            File.WriteAllText(Path.Combine(backupPath, "libwebp", "bin", "cwebp"), "previous encoder");
+            File.WriteAllText(Path.Combine(backupPath, "libwebp", "bin", "dwebp"), "previous decoder");
+            File.WriteAllText(
+                WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId),
+                Path.GetFullPath(installPath));
+
+            await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
+
+            Assert.Equal("previous encoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp")));
+            Assert.Equal("previous decoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "dwebp")));
+            Assert.False(Directory.Exists(backupPath));
+            Assert.False(File.Exists(WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId)));
+        }
+
+        [Fact]
+        public async Task RecoverInterruptedInstallationAsync_LeavesUnidentifiedBackupUntouched()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            const string transactionId = "fedcba9876543210fedcba9876543210";
+            var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
+            Directory.CreateDirectory(backupPath);
+            File.WriteAllText(Path.Combine(backupPath, "owner.txt"), "unrelated backup");
+
+            await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
+
+            Assert.Equal("unrelated backup", File.ReadAllText(Path.Combine(backupPath, "owner.txt")));
+        }
+
+        [Fact]
+        public void ReplaceInstallation_FailedPromotionRestoresPreviousInstallation()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            var stagingPath = Path.Combine(temporaryDirectory.Path, ".webp-staging-missing");
+            const string transactionId = "00112233445566778899aabbccddeeff";
+            var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
+            Directory.CreateDirectory(Path.Combine(installPath, "libwebp", "bin"));
+            File.WriteAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp"), "previous encoder");
+            File.WriteAllText(Path.Combine(installPath, "libwebp", "bin", "dwebp"), "previous decoder");
+
+            Assert.Throws<DirectoryNotFoundException>(() =>
+                WebPExecuteDownloader.ReplaceInstallation(stagingPath, installPath, backupPath));
+
+            Assert.Equal("previous encoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp")));
+            Assert.Equal("previous decoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "dwebp")));
+            Assert.False(Directory.Exists(backupPath));
+            Assert.False(File.Exists(WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId)));
+        }
+
+        [Fact]
         public async Task InstallArchiveAsync_RejectsZipPathTraversal()
         {
             using var temporaryDirectory = new TemporaryDirectory();
