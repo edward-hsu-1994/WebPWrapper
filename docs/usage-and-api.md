@@ -10,7 +10,7 @@ Add the NuGet package to your project:
 dotnet add package WebPWrapper
 ```
 
-The library selects the bundled CLI path for the current supported platform, but does not download the CLI automatically. Install it once before building an encoder or decoder:
+The library resolves a default CLI path for the current supported platform, but does not download the CLI automatically. Install it once before building an encoder or decoder:
 
 ```csharp
 using WebPWrapper;
