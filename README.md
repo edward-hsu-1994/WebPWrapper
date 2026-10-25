@@ -41,9 +41,36 @@ using (var output = File.Create("output.webp"))
 
 `WebPExecuteDownloader.Download()` installs the platform's WebP CLI tools before the builder uses them. Applications that manage their own executables can pass the executable path to `WebPEncoderBuilder` or `WebPDecoderBuilder` instead.
 
+## Supported platforms
+
+The library targets .NET Standard 2.1. The bundled WebP CLI downloader supports:
+
+| Operating system | Architecture |
+| --- | --- |
+| Windows | x64 |
+| Linux | x64 |
+| macOS | x64, ARM64 |
+
+Other platforms or architectures must provide compatible `cwebp` and `dwebp` executables through the builder constructors.
+
 ## Containerized applications
 
-For containerized applications, avoid downloading the CLI at runtime. Install it while building the image, then pass its executable path to the `WebPEncoderBuilder` and `WebPDecoderBuilder` constructors.
+For containerized applications, install the WebP CLI in the image instead of downloading it at runtime. For example, in a Debian-based image:
+
+```dockerfile
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends webp \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+Pass the executable paths supplied by the image to the builders. On Debian-based images these are typically `/usr/bin/cwebp` and `/usr/bin/dwebp`; verify paths for the selected base image:
+
+```csharp
+var encoder = new WebPEncoderBuilder("/usr/bin/cwebp").Build();
+var decoder = new WebPDecoderBuilder("/usr/bin/dwebp").Build();
+```
+
+This example depends on the package name and CLI paths provided by the chosen image repository. Pin the base image and package versions according to your deployment policy.
 
 ## Tests
 
