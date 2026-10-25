@@ -18,7 +18,7 @@ using WebPWrapper;
 await WebPExecuteDownloader.DownloadAsync();
 ```
 
-For a synchronous application, call `WebPExecuteDownloader.Download()` instead. These methods use the per-user installation; the downloader's checksums and installation details are documented in [CLI download security](security/cli-downloads.md).
+For a synchronous application, call `WebPExecuteDownloader.Download()` instead. Both sync and async methods have overloads accepting a `CancellationToken`; cancellation interrupts the HTTP request, response-body reads, or installation-lock wait. The per-user installation lock can wait at most 30 seconds, after which the call throws `TimeoutException`. The downloader's checksums and installation details are documented in [CLI download security](security/cli-downloads.md).
 
 ## Encode and decode streams
 
@@ -49,7 +49,10 @@ using (var output = File.Create("decoded.png"))
 `ExportFormats.PNG` is the default decoder output format; it is included above to make the selected format explicit. The input is consumed from its current position to the end, and the output is written at its current position. The wrapper does not dispose the streams supplied by the caller.
 
 ## Async operations and cancellation
+
 Both `IWebPEncoder` and `IWebPDecoder` provide asynchronous overloads with and without a `CancellationToken`. The overload without a token uses `CancellationToken.None`. The token-aware overload observes cancellation while copying streams and while the CLI process is running; cancellation of a running CLI terminates that process.
+
+`WebPExecuteDownloader.DownloadAsync` and `Download` also have overloads accepting a `CancellationToken`. The token is passed to the HTTP request, response-body copy, and installation-lock wait, and is checked after archive extraction before promotion. Synchronous ZIP/TAR extraction cannot be interrupted mid-operation; cancellation during extraction is observed when extraction finishes. Cancellation throws `OperationCanceledException`. The lock wait is capped at 30 seconds; if another process holds the lock for the full interval, download fails with `TimeoutException`.
 
 ```csharp
 using System.IO;
@@ -107,7 +110,7 @@ var encoder = new WebPEncoderBuilder("/opt/libwebp/bin/cwebp").Build();
 var decoder = new WebPDecoderBuilder("/opt/libwebp/bin/dwebp").Build();
 ```
 
-When no path is supplied, builders resolve the default executable location for the current platform; they do not download missing executables. Use `WebPExecuteDownloader.Download()` or `DownloadAsync()` for the default installation.
+When no path is supplied, builders resolve the default executable location for the current platform; they do not download missing executables. Use `WebPExecuteDownloader.Download()` or `DownloadAsync()` for the default installation. To cancel installation, pass a `CancellationToken` to either method.
 
 ## API overview
 
@@ -132,7 +135,7 @@ Types live in the `WebPWrapper`, `WebPWrapper.Encoder`, and `WebPWrapper.Decoder
 | `AlphaFilters` | Selects the alpha-plane filtering strategy. |
 | `TransparentProcesses` | Selects handling for transparent pixels during encoding. |
 | `ExportFormats` | Selects decoded output format: `PNG`, `TIFF`, `PAM`, `PPM`, `PGM`, `YUV`, or `BMP`. |
-| `WebPExecuteDownloader` | Installs the platform's WebP CLI tools with `Download()` or `DownloadAsync(bool ignoreIfExtsis = true)`. |
+| `WebPExecuteDownloader` | Installs the platform's WebP CLI tools with `Download()` or `DownloadAsync(bool ignoreIfExtsis = true)`; cancellation-token overloads are available. |
 | `ProcessFailureKind` | Categorizes CLI process failures as `StartFailed`, `NonZeroExit`, `TimedOut`, or `Canceled`. |
 | `ProcessExecutionException` | Provides process failure kind, executable path, optional exit code, and captured standard output/error. |
 | `ProcessExecutionCanceledException` | An `OperationCanceledException` subtype with captured CLI failure details in `FailureDetails`. |
