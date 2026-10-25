@@ -2,26 +2,32 @@ name: Unit Test
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   unit-test:
-    name: UnitTest
-    runs-on: ubuntu-latest
+    name: UnitTest (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 6.0.x
+          dotnet-version: 10.0.x
       - name: Restore packages
-        run: dotnet restore
-        working-directory: src
+        run: dotnet restore src/WebPWrapper.Test/WebPWrapper.Test.csproj
       - name: Build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: src
+        run: dotnet build src/WebPWrapper.Test/WebPWrapper.Test.csproj --configuration Release --no-restore
       - name: Unit Test
-        run: dotnet test --configuration Release --no-build
-        working-directory: src
-      
+        run: dotnet test src/WebPWrapper.Test/WebPWrapper.Test.csproj --configuration Release --no-build
+        env:
+          DOTNET_ROLL_FORWARD: Major
