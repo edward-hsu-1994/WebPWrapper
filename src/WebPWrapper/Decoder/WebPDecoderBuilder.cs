@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace WebPWrapper.Decoder {
     /// <summary>
@@ -17,42 +15,30 @@ namespace WebPWrapper.Decoder {
         private string _executeFilePath;
 
         // Default CLI path. (If Cli downloaded by WebPExecuteDownloader.
+        /// <summary>Directory name for the bundled Windows decoder.</summary>
         public const string _windowsDir = "libwebp-1.6.0-windows-x64";
+        /// <summary>Directory name for the bundled Linux decoder.</summary>
         public const string _linuxDir = "libwebp-1.6.0-linux-x86-64";
+        /// <summary>Directory name for the bundled macOS x64 decoder.</summary>
         public const string _osxDir = "libwebp-1.6.0-mac-x86-64";
+        /// <summary>Directory name for the bundled macOS ARM64 decoder.</summary>
         public const string _osxARMDir = "libwebp-1.6.0-mac-arm64";
 
         /// <summary>
         /// Create <see cref="WebPDecoderBuilder"/>
         /// </summary>
         /// <param name="executeFilePath">Cli file path.</param>
-        /// <exception cref="PlatformNotSupportedException"></exception>
-        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="PlatformNotSupportedException">The current platform is unsupported.</exception>
+        /// <exception cref="FileNotFoundException">The decoder executable does not exist.</exception>
         public WebPDecoderBuilder(string executeFilePath = null) {
-            _executeFilePath = executeFilePath;
-            if (_executeFilePath == null) {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    _executeFilePath = $"webp/{_windowsDir}/bin/dwebp.exe";
-                } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    _executeFilePath = $"webp/{_linuxDir}/bin/dwebp";
-                }
-                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    _executeFilePath = $"webp/{_osxARMDir}/bin/dwebp";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                    _executeFilePath = $"webp/{_osxDir}/bin/dwebp";
-                } else {
-                    throw new PlatformNotSupportedException();
-                }
-                _executeFilePath = Path.Combine(Path.GetFullPath("."), _executeFilePath);
-            }
-
+            _executeFilePath = executeFilePath ?? WebPExecuteDownloader.GetDefaultExecutablePath(encoder: false);
             if (!File.Exists(_executeFilePath)) {
                 throw new FileNotFoundException();
             }
         }
 
+        /// <summary>Selects the decoded image output format.</summary>
+        /// <param name="format">The output format.</param>
         public IWebPDecoderBuilder ExportFormat(ExportFormats format) {
             switch (format) {
                 case ExportFormats.BMP:
@@ -77,56 +63,72 @@ namespace WebPWrapper.Decoder {
             return this;
         }
 
+        /// <summary>Crops the decoded image to the specified rectangle.</summary>
+        /// <param name="x">Left coordinate.</param><param name="y">Top coordinate.</param><param name="width">Crop width.</param><param name="height">Crop height.</param>
         public IWebPDecoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
 
+        /// <summary>Resizes the decoded image.</summary>
+        /// <param name="width">Output width.</param><param name="height">Output height.</param>
         public IWebPDecoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
 
+        /// <summary>Enables multithreaded decoding when supported.</summary>
         public IWebPDecoderBuilder MultiThread() {
             _arguments.Add((key: "-mt", value: null));
             return this;
         }
 
+        /// <summary>Disables assembly optimizations.</summary>
         public IWebPDecoderBuilder DisableAssemblyOptimization() {
             _arguments.Add((key: "-noasm", value: null));
             return this;
         }
 
+        /// <summary>Disables in-loop filtering.</summary>
         public IWebPDecoderBuilder NoFilter() {
             _arguments.Add((key: "-nofilter", value: null));
             return this;
         }
 
+        /// <summary>Disables the fancy upsampling filter.</summary>
         public IWebPDecoderBuilder NoFancy() {
             _arguments.Add((key: "-nofancy", value: null));
             return this;
         }
 
+        /// <summary>Sets dithering strength for RGB-to-YUV conversion.</summary>
+        /// <param name="strength">Dithering strength.</param>
         public IWebPDecoderBuilder Dither(int strength) {
             _arguments.Add((key: "-dither", value: strength.ToString()));
             return this;
         }
 
+        /// <summary>Flips the decoded image vertically.</summary>
         public IWebPDecoderBuilder Flip() {
             _arguments.Add((key: "-flip", value: null));
             return this;
         }
 
+        /// <summary>Clears all previously selected decoder options.</summary>
         public IWebPDecoderBuilder Reset() {
             _arguments.Clear();
             return this;
         }
 
+        /// <summary>Creates a decoder configured with the current options.</summary>
+        /// <returns>The configured decoder.</returns>
         public IWebPDecoder Build() {
             var args = GetCurrentArguments();
             return new WebPDecoder(_executeFilePath, args);
         }
 
+        /// <summary>Returns the command-line arguments accumulated by this builder.</summary>
+        /// <returns>The formatted decoder command-line arguments.</returns>
         public string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {

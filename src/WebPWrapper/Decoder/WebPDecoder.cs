@@ -13,6 +13,9 @@ namespace WebPWrapper.Decoder {
             _arguments = arguments;
         }
 
+        /// <summary>Decodes WebP data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the WebP image.</param>
+        /// <param name="output">Writable stream receiving the decoded image.</param>
         public void Decode(Stream input, Stream output) {
             Decode(input, output, CancellationToken.None);
         }
@@ -41,15 +44,15 @@ namespace WebPWrapper.Decoder {
             }
         }
 
-        /// <summary>Decodes an image asynchronously.</summary>
-        /// <param name="input">Input WebP image.</param>
-        /// <param name="output">Output image.</param>
-        /// <returns>A task representing the decoding operation.</returns>
+        /// <summary>Asynchronously decodes WebP data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the WebP image.</param>
+        /// <param name="output">Writable stream receiving the decoded image.</param>
+        /// <returns>A task that completes when decoding has finished.</returns>
         public Task DecodeAsync(Stream input, Stream output) => DecodeAsync(input, output, CancellationToken.None);
 
-        /// <summary>Decodes an image asynchronously and observes cancellation.</summary>
-        /// <param name="input">Input WebP image.</param>
-        /// <param name="output">Output image.</param>
+        /// <summary>Asynchronously decodes WebP data and observes cancellation.</summary>
+        /// <param name="input">Readable stream containing the WebP image.</param>
+        /// <param name="output">Writable stream receiving the decoded image.</param>
         /// <param name="cancellationToken">Token used to cancel the operation and terminate the CLI process.</param>
         /// <returns>A task representing the decoding operation.</returns>
         public async Task DecodeAsync(Stream input, Stream output, CancellationToken cancellationToken) {

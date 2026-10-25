@@ -1,6 +1,6 @@
 # WebPWrapper
 
-[![Unit Test](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/XuPeiYao/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](#) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![Github license](https://img.shields.io/github/license/XuPeiYao/WebPWrapper.svg)](#)
+[![Unit Test](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![Github license](https://img.shields.io/github/license/edward-hsu-1994/WebPWrapper.svg)](https://github.com/edward-hsu-1994/WebPWrapper/blob/master/LICENSE)
 
 This library is a wrapper for WebP CLI. 
 Provides a simple CLI parameter builder, making it easier to use WebP in development
@@ -45,6 +45,20 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 ## CLI downloads
 
 `WebPExecuteDownloader.Download()` downloads libwebp 1.6.0, verifies the platform archive against its pinned SHA-256 digest, applies archive size and path-safety limits, and installs the CLI through a staged directory. For checksum provenance, limits, and failure behavior, see [CLI download security](docs/security/cli-downloads.md).
+
+## Tests
+
+Run the deterministic, offline test suite with:
+
+```shell
+dotnet test src/WebPWrapper.sln
+```
+
+Tests that download and exercise the official WebP CLI are isolated in the integration test project. Run them explicitly with:
+
+```shell
+dotnet test src/WebPWrapper.IntegrationTest/WebPWrapper.IntegrationTest.csproj
+```
 
 ## Suggestions
 
