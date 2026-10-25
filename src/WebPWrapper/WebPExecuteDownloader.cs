@@ -228,6 +228,7 @@ namespace WebPWrapper
                     TarFile.ExtractToDirectory(tarPath, stagingPath, Encoding.UTF8);
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 ReplaceInstallation(stagingPath, installPath, backupPath);
             }
             finally

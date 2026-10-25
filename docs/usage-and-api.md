@@ -52,7 +52,7 @@ using (var output = File.Create("decoded.png"))
 
 Both `IWebPEncoder` and `IWebPDecoder` provide asynchronous overloads with and without a `CancellationToken`. The overload without a token uses `CancellationToken.None`. The token-aware overload observes cancellation while copying streams and while the CLI process is running; cancellation of a running CLI terminates that process.
 
-`WebPExecuteDownloader.DownloadAsync` and `Download` also have overloads accepting a `CancellationToken`. The token is passed to the HTTP request, response-body copy, and installation-lock wait. Cancellation throws `OperationCanceledException`. The lock wait is capped at 30 seconds; if another process holds the lock for the full interval, download fails with `TimeoutException`.
+`WebPExecuteDownloader.DownloadAsync` and `Download` also have overloads accepting a `CancellationToken`. The token is passed to the HTTP request, response-body copy, and installation-lock wait, and is checked after archive extraction before promotion. Synchronous ZIP/TAR extraction cannot be interrupted mid-operation; cancellation during extraction is observed when extraction finishes. Cancellation throws `OperationCanceledException`. The lock wait is capped at 30 seconds; if another process holds the lock for the full interval, download fails with `TimeoutException`.
 
 ```csharp
 using System.IO;
