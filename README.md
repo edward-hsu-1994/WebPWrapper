@@ -46,6 +46,20 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 
 `WebPExecuteDownloader.Download()` downloads libwebp 1.6.0, verifies the platform archive against its pinned SHA-256 digest, applies archive size and path-safety limits, and installs the CLI through a staged directory. For checksum provenance, limits, and failure behavior, see [CLI download security](docs/security/cli-downloads.md).
 
+## Tests
+
+Run the deterministic, offline test suite with:
+
+```shell
+dotnet test src/WebPWrapper.sln
+```
+
+Tests that download and exercise the official WebP CLI are isolated in the integration test project. Run them explicitly with:
+
+```shell
+dotnet test src/WebPWrapper.IntegrationTest/WebPWrapper.IntegrationTest.csproj
+```
+
 ## Suggestions
 
 For containerized services, I do not recommend downloading CLI in Runtime.
