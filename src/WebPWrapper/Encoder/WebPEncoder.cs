@@ -17,6 +17,9 @@ namespace WebPWrapper.Encoder {
             _arguments = arguments;
         }
 
+        /// <summary>Encodes image data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the source image.</param>
+        /// <param name="output">Writable stream receiving the WebP image.</param>
         public void Encode(Stream input, Stream output) {
             var inputFile = Path.GetTempFileName();
             var outputFile = Path.GetTempFileName();
@@ -71,6 +74,10 @@ namespace WebPWrapper.Encoder {
         }
 
 
+        /// <summary>Asynchronously encodes image data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the source image.</param>
+        /// <param name="output">Writable stream receiving the WebP image.</param>
+        /// <returns>A task that completes when encoding has finished.</returns>
         public async Task EncodeAsync(Stream input, Stream output) {
             await Task.Run(() => Encode(input, output));
         }

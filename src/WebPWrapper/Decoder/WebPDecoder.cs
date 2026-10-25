@@ -17,6 +17,9 @@ namespace WebPWrapper.Decoder {
             _arguments = arguments;
         }
         
+        /// <summary>Decodes WebP data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the WebP image.</param>
+        /// <param name="output">Writable stream receiving the decoded image.</param>
         public void Decode(Stream input, Stream output) {
             var inputFile = Path.GetTempFileName();
             var outputFile = Path.GetTempFileName();
@@ -70,6 +73,10 @@ namespace WebPWrapper.Decoder {
             }
         }
         
+        /// <summary>Asynchronously decodes WebP data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the WebP image.</param>
+        /// <param name="output">Writable stream receiving the decoded image.</param>
+        /// <returns>A task that completes when decoding has finished.</returns>
         public async Task DecodeAsync(Stream input, Stream output) {
             await Task.Run(() => Decode(input, output));
         }

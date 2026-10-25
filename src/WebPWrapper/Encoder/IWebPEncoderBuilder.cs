@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 namespace WebPWrapper.Encoder {
+    /// <summary>Defines a fluent builder for configuring WebP encoding.</summary>
     public interface IWebPEncoderBuilder {
         /// <summary>
         /// Crop the decoded picture to a rectangle with top-left corner at coordinates (<paramref name="x"/>, <paramref name="y"/>) and size width x height. This cropping area must be fully contained within the source rectangle. The top-left corner will be snapped to even coordinates if needed. This option is meant to reduce the memory needed for cropping large images. Note: the cropping is applied before any scaling.

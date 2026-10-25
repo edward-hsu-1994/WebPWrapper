@@ -45,7 +45,6 @@ namespace WebPWrapper.Encoder {
                     break;
                 case TransparentProcesses.Blend:
                     throw new ArgumentNullException("blendColor");
-                    break;
             }
             return this;
         }
