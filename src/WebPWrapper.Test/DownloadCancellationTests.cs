@@ -12,9 +12,10 @@ namespace WebPWrapper.Test
         [Fact]
         public async Task AcquireInstallationLockAsync_ThrowsMeaningfulTimeoutWhenLockRemainsHeld()
         {
-            using var directory = new TemporaryTestDirectory();
+            using var directory = new TestDirectory();
             var lockPath = directory.OutputPath("install.lock");
-            using var heldLock = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            using var heldLock = new FileStream(
+                lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, false);
 
             var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
                 WebPExecuteDownloader.AcquireInstallationLockAsync(
@@ -27,9 +28,10 @@ namespace WebPWrapper.Test
         [Fact]
         public async Task AcquireInstallationLockAsync_ObservesCancellationWhileWaiting()
         {
-            using var directory = new TemporaryTestDirectory();
+            using var directory = new TestDirectory();
             var lockPath = directory.OutputPath("install.lock");
-            using var heldLock = new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            using var heldLock = new FileStream(
+                lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, false);
             using var cancellation = new CancellationTokenSource();
             cancellation.CancelAfter(TimeSpan.FromMilliseconds(50));
 
@@ -41,7 +43,7 @@ namespace WebPWrapper.Test
         [Fact]
         public async Task InstallArchiveAsync_CancelsBlockedResponseBodyRead()
         {
-            using var directory = new TemporaryTestDirectory();
+            using var directory = new TestDirectory();
             using var cancellation = new CancellationTokenSource();
             using var body = new BlockingReadStream();
             var installationPath = directory.OutputPath("install");
@@ -57,6 +59,25 @@ namespace WebPWrapper.Test
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => installTask);
             Assert.False(Directory.Exists(installationPath));
+        }
+
+        private sealed class TestDirectory : IDisposable
+        {
+            private readonly string _path = Path.Combine(
+                Path.GetTempPath(), "WebPWrapper-Cancellation-" + Guid.NewGuid().ToString("N"));
+
+            public TestDirectory()
+            {
+                Directory.CreateDirectory(_path);
+            }
+
+            public string OutputPath(string fileName) => Path.Combine(_path, fileName);
+
+            public void Dispose()
+            {
+                if (Directory.Exists(_path))
+                    Directory.Delete(_path, true);
+            }
         }
 
         private sealed class BlockingReadStream : Stream
