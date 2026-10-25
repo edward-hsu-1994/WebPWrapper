@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using WebPWrapper;
 using WebPWrapper.Decoder;
 using Xunit;
 
@@ -77,7 +78,10 @@ namespace WebPWrapper.Test
             var outputPath = temporary.OutputPath("invalid.png");
             using var input = new MemoryStream(new byte[] { 0, 1, 2, 3, 4 });
             using (var output = File.Create(outputPath))
-                Assert.Throws<Exception>(() => new WebPDecoderBuilder().Build().Decode(input, output));
+            {
+                var exception = Assert.Throws<ProcessExecutionException>(() => new WebPDecoderBuilder().Build().Decode(input, output));
+                Assert.Equal(ProcessFailureKind.NonZeroExit, exception.Kind);
+            }
 
             Assert.Equal(0, new FileInfo(outputPath).Length);
         }
