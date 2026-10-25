@@ -349,3 +349,6 @@ healthchecksdb
 MigrationBackup/
 .vscode
 src/.idea
+# Local agent state and macOS metadata
+.superpowers/
+.DS_Store

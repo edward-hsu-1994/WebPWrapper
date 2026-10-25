@@ -11,6 +11,10 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>webp wrapper</PackageTags>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+  </ItemGroup>
+
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netstandard2.1\WebPWrapper.xml</DocumentationFile>
