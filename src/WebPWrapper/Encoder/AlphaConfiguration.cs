@@ -26,7 +26,7 @@ namespace WebPWrapper.Encoder {
         /// No compression
         /// </summary>
         public AlphaConfiguration DisableCompression() {
-            _arguments.Add((key: "-alpha_method", value: ""));
+            _arguments.Add((key: "-alpha_method", value: "0"));
             return this;
         }
 
