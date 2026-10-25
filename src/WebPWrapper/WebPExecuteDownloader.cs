@@ -118,14 +118,14 @@ namespace WebPWrapper
 
         internal static string GetDefaultExecutablePath(bool encoder)
         {
+            return GetDefaultExecutablePath(encoder, GetDefaultInstallationPath());
+        }
+
+        internal static string GetDefaultExecutablePath(bool encoder, string installationPath)
+        {
             var (_, _, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
             var relativePath = encoder ? encoderRelativePath : decoderRelativePath;
-            var cachedPath = Path.Combine(GetDefaultInstallationPath(), relativePath);
-            if (File.Exists(cachedPath))
-                return cachedPath;
-
-            var legacyPath = Path.Combine(Path.GetFullPath("webp"), relativePath);
-            return File.Exists(legacyPath) ? legacyPath : cachedPath;
+            return Path.Combine(installationPath, relativePath);
         }
         /// <summary>
         /// Downloads, verifies, and installs the platform WebP CLI archive synchronously.

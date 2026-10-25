@@ -4,11 +4,13 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using WebPWrapper;
 using Xunit;
 
 namespace WebPWrapper.Test
 {
+    [Collection("Current Directory Isolation")]
     public class TarFileSecurityTests
     {
         [Fact]
@@ -26,6 +28,49 @@ namespace WebPWrapper.Test
             Assert.Equal("libwebp-1.6.0-linux-x86-64", WebPWrapper.Decoder.WebPDecoderBuilder._linuxDir);
             Assert.Equal("libwebp-1.6.0-mac-x86-64", WebPWrapper.Decoder.WebPDecoderBuilder._osxDir);
             Assert.Equal("libwebp-1.6.0-mac-arm64", WebPWrapper.Decoder.WebPDecoderBuilder._osxARMDir);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void DefaultExecutablePathIgnoresUnverifiedCurrentDirectoryFiles(bool encoder)
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installRoot = Path.Combine(temporaryDirectory.Path, "cache");
+            var workingDirectory = Path.Combine(temporaryDirectory.Path, "working");
+            var relativePath = GetCliRelativePath(encoder);
+            var legacyExecutable = Path.Combine(workingDirectory, "webp", relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(legacyExecutable));
+            File.WriteAllText(legacyExecutable, "unverified executable");
+
+            var previousDirectory = Environment.CurrentDirectory;
+            try
+            {
+                Environment.CurrentDirectory = workingDirectory;
+                var resolvedPath = WebPExecuteDownloader.GetDefaultExecutablePath(encoder, installRoot);
+                Assert.Equal(Path.Combine(installRoot, relativePath), resolvedPath);
+            }
+            finally
+            {
+                Environment.CurrentDirectory = previousDirectory;
+            }
+        }
+
+        private static string GetCliRelativePath(bool encoder)
+        {
+            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var platformDirectory = isWindows
+                ? WebPWrapper.Encoder.WebPEncoderBuilder._windowsDir
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+                  RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+                    ? WebPWrapper.Encoder.WebPEncoderBuilder._osxARMDir
+                    : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                        ? WebPWrapper.Encoder.WebPEncoderBuilder._osxDir
+                        : WebPWrapper.Encoder.WebPEncoderBuilder._linuxDir;
+            var executableName = encoder ? "cwebp" : "dwebp";
+            if (isWindows)
+                executableName += ".exe";
+            return Path.Combine(platformDirectory, "bin", executableName);
         }
 
         [Fact]
@@ -390,5 +435,10 @@ namespace WebPWrapper.Test
                 Directory.Delete(Path, true);
             }
         }
+    }
+
+    [CollectionDefinition("Current Directory Isolation", DisableParallelization = true)]
+    public class CurrentDirectoryIsolationCollection
+    {
     }
 }
