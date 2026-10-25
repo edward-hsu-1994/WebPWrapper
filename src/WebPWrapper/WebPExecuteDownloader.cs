@@ -77,14 +77,13 @@ namespace WebPWrapper
             cancellationToken.ThrowIfCancellationRequested();
             var (downloadUrl, expectedSha256, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
             var installPath = GetDefaultInstallationPath();
-            if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
-                return;
             var installParent = Path.GetDirectoryName(installPath);
             Directory.CreateDirectory(installParent);
 
             using (await AcquireInstallationLockAsync(
                 Path.Combine(installParent, ".webp.install.lock"), cancellationToken).ConfigureAwait(false))
             {
+                RecoverInterruptedInstallation(installPath);
                 if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
                     return;
 
@@ -433,9 +432,98 @@ namespace WebPWrapper
             return unixFileType == 0xA000 || (entry.ExternalAttributes & (int)FileAttributes.ReparsePoint) != 0;
         }
 
-        private static void ReplaceInstallation(string stagingPath, string installPath, string backupPath)
+        internal static async Task RecoverInterruptedInstallationAsync(string installPath)
+        {
+            installPath = Path.GetFullPath(installPath);
+            var parentDirectory = Path.GetDirectoryName(installPath);
+            Directory.CreateDirectory(parentDirectory);
+            using (await AcquireInstallationLockAsync(
+                Path.Combine(parentDirectory, ".webp.install.lock"), CancellationToken.None).ConfigureAwait(false))
+            {
+                RecoverInterruptedInstallation(installPath);
+            }
+        }
+
+        private static void RecoverInterruptedInstallation(string installPath)
+        {
+            if (Directory.Exists(installPath))
+                return;
+
+            var parentDirectory = Path.GetDirectoryName(installPath);
+            string newestStatePath = null;
+            string newestBackupPath = null;
+            string newestTransactionId = null;
+            long newestTimestamp = long.MinValue;
+            var newestHadPreviousInstallation = false;
+            foreach (var statePath in Directory.GetFiles(parentDirectory, ".webp-install-*.state"))
+            {
+                var fileName = Path.GetFileName(statePath);
+                var transactionId = fileName.Substring(".webp-install-".Length, fileName.Length - ".webp-install-".Length - ".state".Length);
+                if (!Guid.TryParseExact(transactionId, "N", out _))
+                    continue;
+
+                string[] stateLines;
+                try
+                {
+                    stateLines = File.ReadAllLines(statePath);
+                }
+                catch (IOException)
+                {
+                    continue;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    continue;
+                }
+
+                if (stateLines.Length != 3 ||
+                    !string.Equals(stateLines[0], installPath, StringComparison.Ordinal) ||
+                    (stateLines[1] != "0" && stateLines[1] != "1") ||
+                    !long.TryParse(stateLines[2], out var timestamp))
+                    continue;
+
+                if (timestamp < newestTimestamp ||
+                    (timestamp == newestTimestamp && string.CompareOrdinal(transactionId, newestTransactionId) <= 0))
+                    continue;
+
+                newestTimestamp = timestamp;
+                newestTransactionId = transactionId;
+                newestStatePath = statePath;
+                newestBackupPath = Path.Combine(parentDirectory, ".webp-backup-" + transactionId);
+                newestHadPreviousInstallation = stateLines[1] == "1";
+            }
+
+            if (newestStatePath != null &&
+                newestHadPreviousInstallation &&
+                Directory.Exists(newestBackupPath))
+            {
+                Directory.Move(newestBackupPath, installPath);
+                TryDeleteFile(newestStatePath);
+            }
+        }
+
+        internal static string GetInstallRecoveryStatePath(string installPath, string transactionId)
+        {
+            return Path.Combine(Path.GetDirectoryName(Path.GetFullPath(installPath)), ".webp-install-" + transactionId + ".state");
+        }
+
+        internal static void ReplaceInstallation(string stagingPath, string installPath, string backupPath)
         {
             var hadPreviousInstallation = Directory.Exists(installPath);
+            if (Directory.Exists(backupPath) || File.Exists(backupPath))
+                throw new IOException("A WebP installation backup path already exists.");
+
+            var transactionId = Path.GetFileName(backupPath).Substring(".webp-backup-".Length);
+            var statePath = GetInstallRecoveryStatePath(installPath, transactionId);
+            using (var state = new FileStream(statePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(state))
+            {
+                writer.Write(Path.GetFullPath(installPath));
+                writer.WriteLine();
+                writer.Write(hadPreviousInstallation ? "1" : "0");
+                writer.WriteLine();
+                writer.Write(DateTime.UtcNow.Ticks);
+            }
             if (hadPreviousInstallation)
                 Directory.Move(installPath, backupPath);
 
@@ -446,12 +534,16 @@ namespace WebPWrapper
             catch
             {
                 if (hadPreviousInstallation && Directory.Exists(backupPath))
+                {
                     Directory.Move(backupPath, installPath);
+                    TryDeleteFile(statePath);
+                }
                 throw;
             }
 
             if (hadPreviousInstallation)
                 Directory.Delete(backupPath, true);
+            TryDeleteFile(statePath);
         }
 
         private static string ToLowerHex(byte[] bytes)
