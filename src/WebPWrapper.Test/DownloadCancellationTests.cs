@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using WebPWrapper;
@@ -17,12 +17,21 @@ namespace WebPWrapper.Test
             using var heldLock = new FileStream(
                 lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 1, false);
 
-            var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
-                WebPExecuteDownloader.AcquireInstallationLockAsync(
-                    lockPath, CancellationToken.None, TimeSpan.FromMilliseconds(250)));
+            var originalCulture = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+                var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
+                    WebPExecuteDownloader.AcquireInstallationLockAsync(
+                        lockPath, CancellationToken.None, TimeSpan.FromMilliseconds(250)));
 
-            Assert.Contains("installation lock", exception.Message, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("0.25 seconds", exception.Message);
+                Assert.Contains("installation lock", exception.Message, StringComparison.OrdinalIgnoreCase);
+                Assert.Contains("0.25 seconds", exception.Message);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = originalCulture;
+            }
         }
 
         [Fact]

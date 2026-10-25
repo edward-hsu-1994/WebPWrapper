@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -322,8 +323,10 @@ namespace WebPWrapper
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (timer.Elapsed >= timeout)
-                    throw new TimeoutException(
-                        $"Could not acquire the WebP installation lock within {timeout.TotalSeconds:0.###} seconds.");
+                    throw new TimeoutException(string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Could not acquire the WebP installation lock within {0:0.###} seconds.",
+                        timeout.TotalSeconds));
                 try
                 {
                     return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
@@ -332,8 +335,10 @@ namespace WebPWrapper
                 {
                     var remaining = timeout - timer.Elapsed;
                     if (remaining <= TimeSpan.Zero)
-                        throw new TimeoutException(
-                            $"Could not acquire the WebP installation lock within {timeout.TotalSeconds:0.###} seconds.");
+                        throw new TimeoutException(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Could not acquire the WebP installation lock within {0:0.###} seconds.",
+                            timeout.TotalSeconds));
 
                     await Task.Delay(
                         remaining < InstallationLockRetryInterval ? remaining : InstallationLockRetryInterval,
