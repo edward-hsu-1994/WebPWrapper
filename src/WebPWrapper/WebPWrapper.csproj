@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../docs/usage-and-api.md" Pack="true" PackagePath="docs/" />
     <None Include="../../docs/security/cli-downloads.md" Pack="true" PackagePath="docs/security/" />
   </ItemGroup>
 

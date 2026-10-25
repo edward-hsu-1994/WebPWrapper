@@ -96,7 +96,35 @@ var encoder = new WebPEncoderBuilder()
     .Build();
 ```
 
-For lossless encoding, `CompressionConfig(config => config.Lossless(lossless => lossless.Mode(6)))` is also available. The configuration callbacks expose the corresponding configuration class methods; see [configuration and option types](#configuration-and-option-types). `Reset()` clears accumulated builder options, and `GetCurrentArguments()` returns the formatted CLI arguments currently accumulated by a builder.
+For lossless encoding, `CompressionConfig(config => config.Lossless(lossless => lossless.Mode(6)))` is also available. The configuration callbacks expose the corresponding configuration class methods. `Reset()` clears accumulated builder options, and `GetCurrentArguments()` returns the formatted CLI arguments currently accumulated by a builder.
+
+### Common builder options
+
+| Builder | Option | Effect |
+| --- | --- | --- |
+| Encoder | `Resize(width, height)` | Sets output dimensions; a zero dimension preserves the source aspect ratio. |
+| Encoder / decoder | `Crop(x, y, width, height)` | Selects a crop rectangle in source-image coordinates. |
+| Encoder / decoder | `MultiThread()` | Enables the CLI's multithreaded mode. |
+| Encoder | `CompressionConfig(...)` | Selects lossy, lossless, or near-lossless compression and its quality/method options. |
+| Encoder | `CopyMetadata(...)` | Copies selected EXIF, ICC, or XMP metadata; the call requires at least one category. |
+| Decoder | `ExportFormat(format)` | Selects the CLI output format. PNG is the default; other formats may produce non-PNG data. |
+| Decoder | `Dither(strength)` | Sets chroma dithering strength for lossy WebP decoding (0–100). |
+| Decoder | `Flip()` | Flips the decoded output vertically. |
+
+Other builder methods configure presets, alpha processing, memory use, filtering, and assembly optimizations. The wrapper forwards many option values to the CLI; consult the official [cwebp](https://developers.google.com/speed/webp/docs/cwebp) and [dwebp](https://developers.google.com/speed/webp/docs/dwebp) references for CLI-specific constraints.
+
+Decode to BMP:
+
+```csharp
+using WebPWrapper.Decoder;
+
+var decoder = new WebPDecoderBuilder()
+    .ExportFormat(ExportFormats.BMP)
+    .Resize(640, 0)
+    .Build();
+```
+
+`Resize` and `Crop` values are passed to the CLI. The library does not inspect or pre-validate image dimensions; invalid combinations are reported as a CLI process failure.
 
 ## Supplying a CLI executable path
 
