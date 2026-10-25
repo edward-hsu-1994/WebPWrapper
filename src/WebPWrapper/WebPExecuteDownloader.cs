@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
