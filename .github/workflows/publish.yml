@@ -3,54 +3,52 @@ name: Publish To NuGet.org
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
-
-permissions:
-  contents: read
+    - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   unit-test:
-    name: UnitTest (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: UnitTest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 6.0.x
       - name: Restore packages
-        run: dotnet restore src/WebPWrapper.Test/WebPWrapper.Test.csproj
+        run: dotnet restore
+        working-directory: src
       - name: Build
-        run: dotnet build src/WebPWrapper.Test/WebPWrapper.Test.csproj --configuration Release --no-restore
+        run: dotnet build --configuration Release --no-restore
+        working-directory: src
       - name: Unit Test
-        run: dotnet test src/WebPWrapper.Test/WebPWrapper.Test.csproj --configuration Release --no-build
-        env:
-          DOTNET_ROLL_FORWARD: Major
+        run: dotnet test --configuration Release --no-build
+        working-directory: src
   publish:
     name: Build Package And Publish to NuGet.org
     runs-on: ubuntu-latest
     needs: unit-test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
       - name: Set VERSION variable from tag
-        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> "$GITHUB_ENV"
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 6.0.x
       - name: Restore packages
-        run: dotnet restore src/WebPWrapper/WebPWrapper.csproj
+        run: dotnet restore
+        working-directory: src
       - name: Build
-        run: dotnet build src/WebPWrapper/WebPWrapper.csproj --configuration Release "/p:Version=${VERSION}" --no-restore
+        run: dotnet build --configuration Release /p:Version=${VERSION} --no-restore
+        working-directory: src/WebPWrapper
       - name: Pack
-        run: dotnet pack src/WebPWrapper/WebPWrapper.csproj --configuration Release "/p:Version=${VERSION}" --no-build --output .
+        run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+        working-directory: src/WebPWrapper
       - name: Publish to NuGet.org
-        run: dotnet nuget push "WebPWrapper.${VERSION}.nupkg" --source https://api.nuget.org/v3/index.json --api-key "${NUGET_TOKEN}"
+        run: dotnet nuget push WebPWrapper.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
+        working-directory: src/WebPWrapper
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
