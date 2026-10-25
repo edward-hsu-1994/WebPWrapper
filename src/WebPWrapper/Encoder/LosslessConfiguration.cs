@@ -17,6 +17,8 @@ namespace WebPWrapper.Encoder {
         /// Setting lossless compression mode.
         /// </summary>
         /// <param name="mode">Compression mode with the specified level between 0 and 9, with level 0 being the fastest, 9 being the slowest. Fast mode produces larger file size than slower ones. A good default is 6.</param> 
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="mode"/> is outside the range 0 to 9.</exception>
+        /// <returns>This configuration, for chaining additional lossless options.</returns>
         public LosslessConfiguration Mode(int mode) {
             if (mode < 0 || mode > 9) {
                 throw new ArgumentOutOfRangeException(nameof(mode));
@@ -30,6 +32,8 @@ namespace WebPWrapper.Encoder {
         /// Specify the compression factor for RGB channels between 0 and 100.
         /// </summary>
         /// <param name="quality">In case of lossy compression (default), a small factor produces a smaller file with lower quality. Best quality is achieved by using a value of 100. Default is 75.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="quality"/> is outside the range 0 to 100.</exception>
+        /// <returns>This configuration, for chaining additional lossless options.</returns>
         public LosslessConfiguration Quality(int quality) {
             if (quality < 0 || quality > 100) {
                 throw new ArgumentOutOfRangeException(nameof(quality));
@@ -43,6 +47,8 @@ namespace WebPWrapper.Encoder {
         /// Specify the compression method to use. This parameter controls the trade off between encoding speed and the compressed file size and quality.
         /// </summary>
         /// <param name="method">Possible values range from 0 to 6. Default value is 4. When higher values are used, the encoder will spend more time inspecting additional encoding possibilities and decide on the quality gain. Lower value can result in faster processing time at the expense of larger file size and lower compression quality.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="method"/> is outside the range 0 to 6.</exception>
+        /// <returns>This configuration, for chaining additional lossless options.</returns>
         public LosslessConfiguration Method(int method) {
             if (method < 0 || method > 6) {
                 throw new ArgumentOutOfRangeException(nameof(method));

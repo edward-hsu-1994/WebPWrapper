@@ -39,6 +39,7 @@ namespace WebPWrapper.Decoder {
 
         /// <summary>Selects the decoded image output format.</summary>
         /// <param name="format">The output format.</param>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder ExportFormat(ExportFormats format) {
             switch (format) {
                 case ExportFormats.BMP:
@@ -65,6 +66,7 @@ namespace WebPWrapper.Decoder {
 
         /// <summary>Crops the decoded image to the specified rectangle.</summary>
         /// <param name="x">Left coordinate.</param><param name="y">Top coordinate.</param><param name="width">Crop width.</param><param name="height">Crop height.</param>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
@@ -72,30 +74,35 @@ namespace WebPWrapper.Decoder {
 
         /// <summary>Resizes the decoded image.</summary>
         /// <param name="width">Output width.</param><param name="height">Output height.</param>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
 
         /// <summary>Enables multithreaded decoding when supported.</summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder MultiThread() {
             _arguments.Add((key: "-mt", value: null));
             return this;
         }
 
         /// <summary>Disables assembly optimizations.</summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder DisableAssemblyOptimization() {
             _arguments.Add((key: "-noasm", value: null));
             return this;
         }
 
         /// <summary>Disables in-loop filtering.</summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder NoFilter() {
             _arguments.Add((key: "-nofilter", value: null));
             return this;
         }
 
         /// <summary>Disables the fancy upsampling filter.</summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder NoFancy() {
             _arguments.Add((key: "-nofancy", value: null));
             return this;
@@ -103,18 +110,21 @@ namespace WebPWrapper.Decoder {
 
         /// <summary>Sets dithering strength for RGB-to-YUV conversion.</summary>
         /// <param name="strength">Dithering strength.</param>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder Dither(int strength) {
             _arguments.Add((key: "-dither", value: strength.ToString()));
             return this;
         }
 
         /// <summary>Flips the decoded image vertically.</summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         public IWebPDecoderBuilder Flip() {
             _arguments.Add((key: "-flip", value: null));
             return this;
         }
 
         /// <summary>Clears all previously selected decoder options.</summary>
+        /// <returns>This builder after clearing previously selected decoder options.</returns>
         public IWebPDecoderBuilder Reset() {
             _arguments.Clear();
             return this;
