@@ -17,6 +17,7 @@
     <Compile Remove="WebPDecodeTest.cs" />
     <Compile Remove="WebPEncodeTest.cs" />
     <Compile Remove="WebPExecuteDownloadHelper.cs" />
+    <Compile Remove="AlphaConfigurationTests.cs" />
   </ItemGroup>
 
 

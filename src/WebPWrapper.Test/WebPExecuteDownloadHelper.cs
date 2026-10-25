@@ -16,6 +16,11 @@ namespace WebPWrapper.Test
             Directory.CreateDirectory(_downloadDirectory);
             try
             {
+                var sampleSourceDirectory = Path.Combine(AppContext.BaseDirectory, "Samples");
+                var sampleDirectory = Path.Combine(_downloadDirectory, "Samples");
+                Directory.CreateDirectory(sampleDirectory);
+                foreach (var samplePath in Directory.GetFiles(sampleSourceDirectory))
+                    File.Copy(samplePath, Path.Combine(sampleDirectory, Path.GetFileName(samplePath)));
                 Environment.CurrentDirectory = _downloadDirectory;
                 WebPExecuteDownloader.Download();
             }

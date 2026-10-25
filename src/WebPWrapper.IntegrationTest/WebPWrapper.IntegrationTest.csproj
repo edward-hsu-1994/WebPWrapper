@@ -15,6 +15,7 @@
     <ProjectReference Include="..\WebPWrapper\WebPWrapper.csproj" />
     <Compile Include="..\WebPWrapper.Test\WebPDecodeTest.cs" Link="WebPDecodeTest.cs" />
     <Compile Include="..\WebPWrapper.Test\WebPEncodeTest.cs" Link="WebPEncodeTest.cs" />
+    <Compile Include="..\WebPWrapper.Test\AlphaConfigurationTests.cs" Link="AlphaConfigurationTests.cs" />
     <Compile Include="..\WebPWrapper.Test\WebPExecuteDownloadHelper.cs" Link="WebPExecuteDownloadHelper.cs" />
     <None Include="..\WebPWrapper.Test\Samples\*" Link="Samples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
