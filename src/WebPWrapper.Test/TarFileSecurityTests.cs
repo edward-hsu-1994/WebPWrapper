@@ -152,7 +152,7 @@ namespace WebPWrapper.Test
             File.WriteAllText(Path.Combine(backupPath, "libwebp", "bin", "dwebp"), "previous decoder");
             File.WriteAllText(
                 WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId),
-                Path.GetFullPath(installPath) + Environment.NewLine + "1");
+                Path.GetFullPath(installPath) + Environment.NewLine + "1" + Environment.NewLine + "100");
 
             await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
 
@@ -187,7 +187,7 @@ namespace WebPWrapper.Test
             Directory.CreateDirectory(backupPath);
             File.WriteAllText(Path.Combine(backupPath, "owner.txt"), "backup data");
             var statePath = WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId);
-            File.WriteAllText(statePath, Path.GetFullPath(installPath) + Environment.NewLine + "1");
+            File.WriteAllText(statePath, Path.GetFullPath(installPath) + Environment.NewLine + "1" + Environment.NewLine + "100");
 
             await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
 
@@ -195,6 +195,32 @@ namespace WebPWrapper.Test
             Assert.Equal("backup data", File.ReadAllText(Path.Combine(backupPath, "owner.txt")));
             Assert.True(File.Exists(statePath));
         }
+        [Fact]
+        public async Task RecoverInterruptedInstallationAsync_RestoresNewestRecordedBackup()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            const string olderId = "ffffffffffffffffffffffffffffffff";
+            const string newerId = "00000000000000000000000000000000";
+            var olderBackup = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + olderId);
+            var newerBackup = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + newerId);
+            Directory.CreateDirectory(olderBackup);
+            File.WriteAllText(Path.Combine(olderBackup, "version.txt"), "older installation");
+            Directory.CreateDirectory(newerBackup);
+            File.WriteAllText(Path.Combine(newerBackup, "version.txt"), "newer installation");
+            File.WriteAllText(
+                WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, newerId),
+                Path.GetFullPath(installPath) + Environment.NewLine + "1" + Environment.NewLine + "200");
+            File.WriteAllText(
+                WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, olderId),
+                Path.GetFullPath(installPath) + Environment.NewLine + "1" + Environment.NewLine + "100");
+
+            await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
+
+            Assert.Equal("newer installation", File.ReadAllText(Path.Combine(installPath, "version.txt")));
+            Assert.Equal("older installation", File.ReadAllText(Path.Combine(olderBackup, "version.txt")));
+        }
+
 
         [Fact]
         public void ReplaceInstallation_FailedPromotionRestoresPreviousInstallation()
@@ -307,6 +333,7 @@ namespace WebPWrapper.Test
                 ComputeSha256(archiveBytes));
 
             Assert.Equal("verified binary", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp")));
+            Assert.Empty(Directory.GetFiles(temporaryDirectory.Path, ".webp-tar-*"));
         }
 
 

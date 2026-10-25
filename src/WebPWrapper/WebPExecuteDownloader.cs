@@ -180,6 +180,7 @@ namespace WebPWrapper
             finally
             {
                 TryDeleteFile(archivePath);
+                TryDeleteFile(tarPath);
                 TryDeleteDirectory(stagingPath);
             }
         }
@@ -362,7 +363,15 @@ namespace WebPWrapper
 
         private static void RecoverInterruptedInstallation(string installPath)
         {
+            if (Directory.Exists(installPath))
+                return;
+
             var parentDirectory = Path.GetDirectoryName(installPath);
+            string newestStatePath = null;
+            string newestBackupPath = null;
+            string newestTransactionId = null;
+            long newestTimestamp = long.MinValue;
+            var newestHadPreviousInstallation = false;
             foreach (var statePath in Directory.GetFiles(parentDirectory, ".webp-install-*.state"))
             {
                 var fileName = Path.GetFileName(statePath);
@@ -384,23 +393,29 @@ namespace WebPWrapper
                     continue;
                 }
 
-                if (stateLines.Length != 2 ||
+                if (stateLines.Length != 3 ||
                     !string.Equals(stateLines[0], installPath, StringComparison.Ordinal) ||
-                    (stateLines[1] != "0" && stateLines[1] != "1"))
+                    (stateLines[1] != "0" && stateLines[1] != "1") ||
+                    !long.TryParse(stateLines[2], out var timestamp))
                     continue;
 
-                var backupPath = Path.Combine(parentDirectory, ".webp-backup-" + transactionId);
-                var hadPreviousInstallation = stateLines[1] == "1";
-                if (!Directory.Exists(installPath) && hadPreviousInstallation && Directory.Exists(backupPath))
-                {
-                    Directory.Move(backupPath, installPath);
-                    TryDeleteFile(statePath);
-                }
-                else if (!Directory.Exists(backupPath))
-                {
-                    TryDeleteFile(statePath);
-                }
-                // When both paths exist, ownership of the backup is ambiguous; leave both untouched.
+                if (timestamp < newestTimestamp ||
+                    (timestamp == newestTimestamp && string.CompareOrdinal(transactionId, newestTransactionId) <= 0))
+                    continue;
+
+                newestTimestamp = timestamp;
+                newestTransactionId = transactionId;
+                newestStatePath = statePath;
+                newestBackupPath = Path.Combine(parentDirectory, ".webp-backup-" + transactionId);
+                newestHadPreviousInstallation = stateLines[1] == "1";
+            }
+
+            if (newestStatePath != null &&
+                newestHadPreviousInstallation &&
+                Directory.Exists(newestBackupPath))
+            {
+                Directory.Move(newestBackupPath, installPath);
+                TryDeleteFile(newestStatePath);
             }
         }
 
@@ -423,6 +438,8 @@ namespace WebPWrapper
                 writer.Write(Path.GetFullPath(installPath));
                 writer.WriteLine();
                 writer.Write(hadPreviousInstallation ? "1" : "0");
+                writer.WriteLine();
+                writer.Write(DateTime.UtcNow.Ticks);
             }
             if (hadPreviousInstallation)
                 Directory.Move(installPath, backupPath);
