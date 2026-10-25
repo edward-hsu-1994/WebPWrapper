@@ -1,50 +1,49 @@
 # WebPWrapper
 
-[![Unit Test](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![Github license](https://img.shields.io/github/license/edward-hsu-1994/WebPWrapper.svg)](https://github.com/edward-hsu-1994/WebPWrapper/blob/master/LICENSE)
+[![Unit Test](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml/badge.svg?branch=master)](https://github.com/edward-hsu-1994/WebPWrapper/actions/workflows/unit-test.yml) [![NuGet Version](https://img.shields.io/nuget/v/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![NuGet Download](https://img.shields.io/nuget/dt/WebPWrapper.svg)](https://www.nuget.org/packages/WebPWrapper/) [![GitHub license](https://img.shields.io/github/license/edward-hsu-1994/WebPWrapper.svg)](https://github.com/edward-hsu-1994/WebPWrapper/blob/master/LICENSE)
 
-This library is a wrapper for WebP CLI. 
-Provides a simple CLI parameter builder, making it easier to use WebP in development
+WebPWrapper is a .NET library that builds and runs `cwebp` and `dwebp` command-line operations through stream-based encoder and decoder APIs.
 
-For more information about WebP and WebP CLI, please refer to [this website](https://developers.google.com/speed/webp/).
+For more information about WebP and the WebP CLI, see the [WebP documentation](https://developers.google.com/speed/webp/).
 
 ## Getting started
 
-### Install library
+### Install the library
+
 ```shell
 dotnet add package WebPWrapper
 ```
 
-### Use case
-```csharp 
+### Encode an image
+
+```csharp
+using System.Drawing;
+using System.IO;
 using WebPWrapper;
 using WebPWrapper.Encoder;
 
 WebPExecuteDownloader.Download();
 
-var builder = new WebPEncoderBuilder();
+var encoder = new WebPEncoderBuilder()
+    .Resize(100, 0)
+    .AlphaConfig(config => config.TransparentProcess(
+        TransparentProcesses.Blend,
+        Color.Yellow))
+    .CompressionConfig(config => config.Lossless(lossless => lossless.Quality(75)))
+    .Build();
 
-var encoder = builder
-	.Resize(100, 0) // Resize image to 100px (length)
-	.AlphaConfig(x => x // set alpha config
-		.TransparentProcess(
-			TransparentProcesses.Blend, // Change transparent color to blend with yellow color
-			Color.Yellow
-		)
-	)
-	.CompressionConfig(x => x // set compression config
-		.Lossless(y => y.Quality(75)) // set lossless config
-	) 
-	.Build(); // build encoder
-
-using (var outputFile = File.Open("output.webp", FileMode.Create))
-using (var inputFile = File.Open("input.png", FileMode.Open)) {
-	encoder.Encode(inputFile, outputFile); // encode image
+using (var input = File.OpenRead("input.png"))
+using (var output = File.Create("output.webp"))
+{
+    encoder.Encode(input, output);
 }
 ```
 
-## CLI downloads
+`WebPExecuteDownloader.Download()` installs the platform's WebP CLI tools before the builder uses them. Applications that manage their own executables can pass the executable path to `WebPEncoderBuilder` or `WebPDecoderBuilder` instead.
 
-`WebPExecuteDownloader.Download()` downloads libwebp 1.6.0, verifies the platform archive against its pinned SHA-256 digest, applies archive size and path-safety limits, and installs the CLI through a staged directory. For checksum provenance, limits, and failure behavior, see [CLI download security](docs/security/cli-downloads.md).
+## Containerized applications
+
+For containerized applications, avoid downloading the CLI at runtime. Install it while building the image, then pass its executable path to the `WebPEncoderBuilder` and `WebPDecoderBuilder` constructors.
 
 ## Tests
 
@@ -60,7 +59,8 @@ Tests that download and exercise the official WebP CLI are isolated in the integ
 dotnet test src/WebPWrapper.IntegrationTest/WebPWrapper.IntegrationTest.csproj
 ```
 
-## Suggestions
+## Documentation
 
-For containerized services, I do not recommend downloading CLI in Runtime.
-I recommend installing the CLI when building the docker image. Then set `executeFilePath` in builder class's constructs
+- [Usage and API overview](docs/usage-and-api.md): stream encoding/decoding, async cancellation, builder options, and public type responsibilities.
+- [CLI download security](docs/security/cli-downloads.md): integrity verification, extraction limits, installation, and failure behavior.
+- [NuGet.org publishing](docs/release-publishing.md): Trusted Publishing setup and the tag-based release process.
