@@ -38,8 +38,8 @@ namespace WebPWrapper
         private const long MaxExpandedBytes = 256L * 1024 * 1024;
         private const int MaxEntries = 4096;
         private const long MaxEntryBytes = 128L * 1024 * 1024;
+        private static readonly TimeSpan InstallationLockTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan InstallationLockRetryInterval = TimeSpan.FromMilliseconds(100);
-        private static readonly HttpClient HttpClient = new HttpClient();
 
         private const string WindowsSha256 = "48886f506b21f62e4661f0f4cbfca19800897c385128e8902542d29a950c93f1";
         private const string LinuxSha256 = "1c5ffab71efecefa0e3c23516c3a3a1dccb45cc310ae1095c6f14ae268e38067";
