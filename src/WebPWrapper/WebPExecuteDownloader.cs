@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,7 +35,7 @@ namespace WebPWrapper
         private const long MaxDownloadBytes = 64L * 1024 * 1024;
         private const long MaxExpandedArchiveBytes = 320L * 1024 * 1024;
         private const long MaxEntryBytes = 128L * 1024 * 1024;
-        private const long MaxExpandedBytes = 256L * 1024 * 1024;
+        private const int MaxEntries = 4096;
         private static readonly TimeSpan InstallationLockTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan InstallationLockRetryInterval = TimeSpan.FromMilliseconds(100);
         private static readonly HttpClient HttpClient = new HttpClient();
