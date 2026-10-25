@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebPWrapper
@@ -36,7 +36,8 @@ namespace WebPWrapper
         private const long MaxExpandedArchiveBytes = 320L * 1024 * 1024;
         private const long MaxEntryBytes = 128L * 1024 * 1024;
         private const long MaxExpandedBytes = 256L * 1024 * 1024;
-        private const int MaxEntries = 4096;
+        private static readonly TimeSpan InstallationLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan InstallationLockRetryInterval = TimeSpan.FromMilliseconds(100);
         private static readonly HttpClient HttpClient = new HttpClient();
 
         private const string WindowsSha256 = "48886f506b21f62e4661f0f4cbfca19800897c385128e8902542d29a950c93f1";
@@ -52,8 +53,26 @@ namespace WebPWrapper
         /// <returns>A task that completes after installation or the no-op check.</returns>
         /// <exception cref="PlatformNotSupportedException">The current platform has no supported archive.</exception>
         /// <exception cref="InvalidDataException">The downloaded archive fails integrity or safety checks.</exception>
-        public static async Task DownloadAsync(bool ignoreIfExtsis = true)
+        public static Task DownloadAsync(bool ignoreIfExtsis = true)
         {
+            return DownloadAsync(ignoreIfExtsis, CancellationToken.None);
+        }
+        /// <summary>Downloads and installs the platform CLI, allowing the operation to be canceled.</summary>
+        /// <param name="cancellationToken">Token used to cancel the HTTP request, response-body reads, and lock wait.</param>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        public static Task DownloadAsync(CancellationToken cancellationToken)
+        {
+            return DownloadAsync(true, cancellationToken);
+        }
+
+        /// <summary>Downloads and installs the platform CLI with an optional existing-installation check and cancellation.</summary>
+        /// <param name="ignoreIfExtsis">When true, return without downloading if the current CLI executables exist.</param>
+        /// <param name="cancellationToken">Token used to cancel the HTTP request, response-body reads, and lock wait.</param>
+        /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
+        /// <exception cref="TimeoutException">The installation lock was unavailable for 30 seconds.</exception>
+        public static async Task DownloadAsync(bool ignoreIfExtsis, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             var (downloadUrl, expectedSha256, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
             var installPath = GetDefaultInstallationPath();
             if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
@@ -61,21 +80,25 @@ namespace WebPWrapper
             var installParent = Path.GetDirectoryName(installPath);
             Directory.CreateDirectory(installParent);
 
-            using (await AcquireInstallationLockAsync(Path.Combine(installParent, ".webp.install.lock")).ConfigureAwait(false))
+            using (await AcquireInstallationLockAsync(
+                Path.Combine(installParent, ".webp.install.lock"), cancellationToken).ConfigureAwait(false))
             {
                 if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
                     return;
 
-                using (var response = await HttpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+                using (var response = await HttpClient.GetAsync(
+                    downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false))
                 {
                     response.EnsureSuccessStatusCode();
                     using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
-                        await InstallArchiveAsync(responseStream, downloadUrl, installPath, expectedSha256).ConfigureAwait(false);
+                        await InstallArchiveAsync(
+                            responseStream, downloadUrl, installPath, expectedSha256, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Returns the stable per-user installation directory for the current libwebp release.
@@ -111,6 +134,20 @@ namespace WebPWrapper
         {
             DownloadAsync(ignoreIfExtsis).GetAwaiter().GetResult();
         }
+        /// <summary>Downloads and installs the platform CLI synchronously with cancellation.</summary>
+        /// <param name="cancellationToken">Token used to cancel the operation.</param>
+        public static void Download(CancellationToken cancellationToken)
+        {
+            DownloadAsync(cancellationToken).GetAwaiter().GetResult();
+        }
+
+        /// <summary>Downloads and installs the platform CLI synchronously with an existing-installation check and cancellation.</summary>
+        /// <param name="ignoreIfExtsis">When true, return without downloading if the current CLI executables exist.</param>
+        /// <param name="cancellationToken">Token used to cancel the operation.</param>
+        public static void Download(bool ignoreIfExtsis, CancellationToken cancellationToken)
+        {
+            DownloadAsync(ignoreIfExtsis, cancellationToken).GetAwaiter().GetResult();
+        }
 
         /// <summary>
         /// Stages an archive, checks its pinned digest, safely extracts it, and replaces the installation.
@@ -120,12 +157,24 @@ namespace WebPWrapper
         /// <param name="installPath">Destination installation directory.</param>
         /// <param name="expectedSha256">Trusted lowercase or uppercase SHA-256 digest.</param>
         /// <exception cref="InvalidDataException">The archive exceeds limits or has a digest mismatch.</exception>
-        internal static async Task InstallArchiveAsync(
+        internal static Task InstallArchiveAsync(
             Stream archiveStream,
             string archiveName,
             string installPath,
             string expectedSha256)
         {
+            return InstallArchiveAsync(
+                archiveStream, archiveName, installPath, expectedSha256, CancellationToken.None);
+        }
+
+        internal static async Task InstallArchiveAsync(
+            Stream archiveStream,
+            string archiveName,
+            string installPath,
+            string expectedSha256,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             if (archiveStream == null)
                 throw new ArgumentNullException(nameof(archiveStream));
             if (string.IsNullOrWhiteSpace(archiveName))
@@ -153,7 +202,8 @@ namespace WebPWrapper
                 using (var archiveFile = new FileStream(archivePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 using (var sha256 = SHA256.Create())
                 {
-                    await CopyBoundedAsync(archiveStream, archiveFile, MaxDownloadBytes, sha256).ConfigureAwait(false);
+                    await CopyBoundedAsync(
+                        archiveStream, archiveFile, MaxDownloadBytes, sha256, cancellationToken).ConfigureAwait(false);
                     var actualHash = ToLowerHex(sha256.Hash);
                     if (!string.Equals(actualHash, expectedSha256, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidDataException("The downloaded WebP archive does not match its pinned SHA-256 digest.");
@@ -170,7 +220,8 @@ namespace WebPWrapper
                     using (var gzip = new GZipStream(compressed, CompressionMode.Decompress))
                     using (var tarFile = new FileStream(tarPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                     {
-                        await CopyBoundedAsync(gzip, tarFile, MaxExpandedArchiveBytes).ConfigureAwait(false);
+                        await CopyBoundedAsync(
+                            gzip, tarFile, MaxExpandedArchiveBytes, null, cancellationToken).ConfigureAwait(false);
                     }
 
                     TarFile.ExtractToDirectory(tarPath, stagingPath, Encoding.UTF8);
@@ -251,18 +302,40 @@ namespace WebPWrapper
                    File.Exists(Path.Combine(installPath, decoderRelativePath));
         }
 
-        private static async Task<FileStream> AcquireInstallationLockAsync(string lockPath)
+        internal static Task<FileStream> AcquireInstallationLockAsync(string lockPath, CancellationToken cancellationToken)
         {
+            return AcquireInstallationLockAsync(lockPath, cancellationToken, InstallationLockTimeout);
+        }
+
+        internal static async Task<FileStream> AcquireInstallationLockAsync(
+            string lockPath,
+            CancellationToken cancellationToken,
+            TimeSpan timeout)
+        {
+            if (timeout <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(timeout), "The lock timeout must be positive.");
+
             var timer = Stopwatch.StartNew();
             while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (timer.Elapsed >= timeout)
+                    throw new TimeoutException(
+                        $"Could not acquire the WebP installation lock within {timeout.TotalSeconds:0.###} seconds.");
                 try
                 {
                     return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
                 }
-                catch (IOException) when (timer.Elapsed < TimeSpan.FromSeconds(30))
+                catch (IOException)
                 {
-                    await Task.Delay(100).ConfigureAwait(false);
+                    var remaining = timeout - timer.Elapsed;
+                    if (remaining <= TimeSpan.Zero)
+                        throw new TimeoutException(
+                            $"Could not acquire the WebP installation lock within {timeout.TotalSeconds:0.###} seconds.");
+
+                    await Task.Delay(
+                        remaining < InstallationLockRetryInterval ? remaining : InstallationLockRetryInterval,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -271,19 +344,21 @@ namespace WebPWrapper
             Stream input,
             Stream output,
             long maximumBytes,
-            SHA256 hash = null)
+            SHA256 hash,
+            CancellationToken cancellationToken)
         {
             var buffer = new byte[81920];
             long totalBytes = 0;
             int bytesRead;
-            while ((bytesRead = await input.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
+            while ((bytesRead = await input.ReadAsync(
+                buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
             {
                 if (totalBytes > maximumBytes - bytesRead)
                     throw new InvalidDataException("The WebP archive exceeds the configured size limit.");
 
                 totalBytes += bytesRead;
                 hash?.TransformBlock(buffer, 0, bytesRead, buffer, 0);
-                await output.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+                await output.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
             }
 
             if (hash != null)
