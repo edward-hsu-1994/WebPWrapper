@@ -1,77 +1,59 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
+﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebPWrapper.Decoder {
-    /// <summary>
-    /// Default WebP decoder
-    /// </summary>
+    /// <summary>Default WebP decoder.</summary>
     public class WebPDecoder : IWebPDecoder {
-        private string _executeFilePath;
-        private string _arguments;
+        private readonly string _executeFilePath;
+        private readonly string _arguments;
+
         internal WebPDecoder(string executeFilePath, string arguments) {
             _executeFilePath = executeFilePath;
             _arguments = arguments;
         }
-        
+
         public void Decode(Stream input, Stream output) {
-            var inputFile = Path.GetTempFileName();
-            var outputFile = Path.GetTempFileName();
+            Decode(input, output, CancellationToken.None);
+        }
 
+        private void Decode(Stream input, Stream output, CancellationToken cancellationToken) {
+            string inputFile = null;
+            string outputFile = null;
             try {
-                using (var inputStream = File.Open(inputFile, FileMode.Open)) {
-                    input.CopyTo(inputStream);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                inputFile = Path.GetTempFileName();
+                outputFile = Path.GetTempFileName();
+                using (var inputStream = File.Open(inputFile, FileMode.Open)) input.CopyTo(inputStream);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                using (Process webpProcess = new Process()) {
-                    var stdout = "";
-                    try {
-                        webpProcess.StartInfo.UseShellExecute = false;
-                        webpProcess.StartInfo.FileName = _executeFilePath;
-                        webpProcess.StartInfo.Arguments = _arguments + $" -o {outputFile} {inputFile}";
-                        webpProcess.StartInfo.CreateNoWindow = true;
-                        webpProcess.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
-                            stdout += e.Data + "\r\n";
-                        };
-                        webpProcess.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
-                            stdout += e.Data + "\r\n";
-                        };
-                        webpProcess.StartInfo.RedirectStandardError = true;
-                        webpProcess.StartInfo.RedirectStandardOutput = true;
-                        webpProcess.Start();
-                        webpProcess.BeginOutputReadLine();
-                        webpProcess.BeginErrorReadLine();
-                        webpProcess.WaitForExit();
+                var arguments = ProcessRunner.ParseArguments(_arguments);
+                arguments.Add("-o");
+                arguments.Add(outputFile);
+                arguments.Add(inputFile);
+                ProcessRunner.Run(_executeFilePath, arguments, ProcessRunner.DefaultTimeout, cancellationToken);
 
-                        if (webpProcess.ExitCode != 0) {
-                            throw new Exception(stdout);
-                        }
-                    } catch (Exception e) {
-                        File.Delete(inputFile);
-                        File.Delete(outputFile);
-
-                        if (stdout == "") {
-                            throw e;
-                        } else {
-                            throw new Exception(stdout);
-                        }
-                    }
-                }
-
-                using (var outputStream = File.Open(outputFile, FileMode.Open)) {
-                    outputStream.CopyTo(output);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                using (var outputStream = File.Open(outputFile, FileMode.Open)) outputStream.CopyTo(output);
             } finally {
-                File.Delete(inputFile);
-                File.Delete(outputFile);
+                if (inputFile != null) File.Delete(inputFile);
+                if (outputFile != null) File.Delete(outputFile);
             }
         }
-        
-        public async Task DecodeAsync(Stream input, Stream output) {
-            await Task.Run(() => Decode(input, output));
+
+        /// <summary>Decodes an image on a worker thread.</summary>
+        /// <param name="input">Input WebP image.</param>
+        /// <param name="output">Output image.</param>
+        /// <returns>A task representing the decoding operation.</returns>
+        public Task DecodeAsync(Stream input, Stream output) => DecodeAsync(input, output, CancellationToken.None);
+
+        /// <summary>Decodes an image on a worker thread and observes cancellation.</summary>
+        /// <param name="input">Input WebP image.</param>
+        /// <param name="output">Output image.</param>
+        /// <param name="cancellationToken">Token used to cancel the operation and terminate the CLI process.</param>
+        /// <returns>A task representing the decoding operation.</returns>
+        public Task DecodeAsync(Stream input, Stream output, CancellationToken cancellationToken) {
+            return Task.Run(() => Decode(input, output, cancellationToken), cancellationToken);
         }
     }
 }
