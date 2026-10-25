@@ -10,7 +10,7 @@ namespace WebPWrapper.Decoder {
     /// WebP decoder
     /// </summary>
     public interface IWebPDecoder {
-        /// <summary>Decodes an image asynchronously using a worker thread.</summary>
+        /// <summary>Decodes an image asynchronously.</summary>
         /// <param name="input">Input WebP image.</param>
         /// <param name="output">Output image.</param>
         /// <returns>A task representing the decoding operation.</returns>
