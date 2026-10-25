@@ -152,7 +152,7 @@ namespace WebPWrapper.Test
             File.WriteAllText(Path.Combine(backupPath, "libwebp", "bin", "dwebp"), "previous decoder");
             File.WriteAllText(
                 WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId),
-                Path.GetFullPath(installPath));
+                Path.GetFullPath(installPath) + Environment.NewLine + "1");
 
             await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
 
@@ -171,10 +171,29 @@ namespace WebPWrapper.Test
             var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
             Directory.CreateDirectory(backupPath);
             File.WriteAllText(Path.Combine(backupPath, "owner.txt"), "unrelated backup");
-
             await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
 
             Assert.Equal("unrelated backup", File.ReadAllText(Path.Combine(backupPath, "owner.txt")));
+        }
+        [Fact]
+        public async Task RecoverInterruptedInstallationAsync_LeavesAmbiguousBackupUntouched()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            const string transactionId = "abcdef0123456789abcdef0123456789";
+            var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
+            Directory.CreateDirectory(installPath);
+            File.WriteAllText(Path.Combine(installPath, "current.txt"), "current installation");
+            Directory.CreateDirectory(backupPath);
+            File.WriteAllText(Path.Combine(backupPath, "owner.txt"), "backup data");
+            var statePath = WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId);
+            File.WriteAllText(statePath, Path.GetFullPath(installPath) + Environment.NewLine + "1");
+
+            await WebPExecuteDownloader.RecoverInterruptedInstallationAsync(installPath);
+
+            Assert.Equal("current installation", File.ReadAllText(Path.Combine(installPath, "current.txt")));
+            Assert.Equal("backup data", File.ReadAllText(Path.Combine(backupPath, "owner.txt")));
+            Assert.True(File.Exists(statePath));
         }
 
         [Fact]
@@ -197,6 +216,30 @@ namespace WebPWrapper.Test
             Assert.False(Directory.Exists(backupPath));
             Assert.False(File.Exists(WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId)));
         }
+        [Fact]
+        public void ReplaceInstallation_PreexistingBackupCollisionLeavesBothInstallationsUntouched()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var installPath = Path.Combine(temporaryDirectory.Path, "webp");
+            var stagingPath = Path.Combine(temporaryDirectory.Path, ".webp-staging");
+            const string transactionId = "8899aabbccddeeff0011223344556677";
+            var backupPath = Path.Combine(temporaryDirectory.Path, ".webp-backup-" + transactionId);
+            Directory.CreateDirectory(Path.Combine(installPath, "libwebp", "bin"));
+            File.WriteAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp"), "previous encoder");
+            File.WriteAllText(Path.Combine(installPath, "libwebp", "bin", "dwebp"), "previous decoder");
+            Directory.CreateDirectory(backupPath);
+            File.WriteAllText(Path.Combine(backupPath, "owner.txt"), "unrelated backup");
+            Directory.CreateDirectory(stagingPath);
+
+            Assert.Throws<IOException>(() =>
+                WebPExecuteDownloader.ReplaceInstallation(stagingPath, installPath, backupPath));
+
+            Assert.Equal("previous encoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "cwebp")));
+            Assert.Equal("previous decoder", File.ReadAllText(Path.Combine(installPath, "libwebp", "bin", "dwebp")));
+            Assert.Equal("unrelated backup", File.ReadAllText(Path.Combine(backupPath, "owner.txt")));
+            Assert.False(File.Exists(WebPExecuteDownloader.GetInstallRecoveryStatePath(installPath, transactionId)));
+        }
+
 
         [Fact]
         public async Task InstallArchiveAsync_RejectsZipPathTraversal()

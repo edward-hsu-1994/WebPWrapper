@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -370,10 +369,10 @@ namespace WebPWrapper
                 if (!Guid.TryParseExact(transactionId, "N", out _))
                     continue;
 
-                string recordedInstallPath;
+                string[] stateLines;
                 try
                 {
-                    recordedInstallPath = File.ReadAllText(statePath);
+                    stateLines = File.ReadAllLines(statePath);
                 }
                 catch (IOException)
                 {
@@ -384,20 +383,23 @@ namespace WebPWrapper
                     continue;
                 }
 
-                if (!string.Equals(recordedInstallPath, installPath, StringComparison.Ordinal))
+                if (stateLines.Length != 2 ||
+                    !string.Equals(stateLines[0], installPath, StringComparison.Ordinal) ||
+                    (stateLines[1] != "0" && stateLines[1] != "1"))
                     continue;
 
                 var backupPath = Path.Combine(parentDirectory, ".webp-backup-" + transactionId);
-                if (!Directory.Exists(installPath) && Directory.Exists(backupPath))
+                var hadPreviousInstallation = stateLines[1] == "1";
+                if (!Directory.Exists(installPath) && hadPreviousInstallation && Directory.Exists(backupPath))
                 {
                     Directory.Move(backupPath, installPath);
+                    TryDeleteFile(statePath);
                 }
-                else if (Directory.Exists(installPath) && Directory.Exists(backupPath))
+                else if (!Directory.Exists(backupPath))
                 {
-                    Directory.Delete(backupPath, true);
+                    TryDeleteFile(statePath);
                 }
-
-                TryDeleteFile(statePath);
+                // When both paths exist, ownership of the backup is ambiguous; leave both untouched.
             }
         }
 
@@ -409,12 +411,17 @@ namespace WebPWrapper
         internal static void ReplaceInstallation(string stagingPath, string installPath, string backupPath)
         {
             var hadPreviousInstallation = Directory.Exists(installPath);
+            if (Directory.Exists(backupPath) || File.Exists(backupPath))
+                throw new IOException("A WebP installation backup path already exists.");
+
             var transactionId = Path.GetFileName(backupPath).Substring(".webp-backup-".Length);
             var statePath = GetInstallRecoveryStatePath(installPath, transactionId);
             using (var state = new FileStream(statePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             using (var writer = new StreamWriter(state))
             {
                 writer.Write(Path.GetFullPath(installPath));
+                writer.WriteLine();
+                writer.Write(hadPreviousInstallation ? "1" : "0");
             }
             if (hadPreviousInstallation)
                 Directory.Move(installPath, backupPath);
