@@ -27,6 +27,43 @@ namespace WebPWrapper.Test
             Assert.Equal("libwebp-1.6.0-mac-x86-64", WebPWrapper.Decoder.WebPDecoderBuilder._osxDir);
             Assert.Equal("libwebp-1.6.0-mac-arm64", WebPWrapper.Decoder.WebPDecoderBuilder._osxARMDir);
         }
+
+        [Fact]
+        public void DefaultInstallationUsesVersionedLocalApplicationDataPath()
+        {
+            var expected = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "WebPWrapper",
+                "libwebp",
+                "1.6.0");
+
+            Assert.Equal(expected, WebPExecuteDownloader.GetDefaultInstallationPath());
+        }
+
+        [Fact]
+        public async Task VersionedInstallationsCoexist()
+        {
+            using var temporaryDirectory = new TemporaryDirectory();
+            var firstInstall = WebPExecuteDownloader.GetVersionedInstallationPath(temporaryDirectory.Path, "1.6.0");
+            var secondInstall = WebPExecuteDownloader.GetVersionedInstallationPath(temporaryDirectory.Path, "1.7.0");
+            var firstArchiveBytes = CreateGZip(CreateTar("libwebp/bin/cwebp", "version 1.6.0"));
+            var secondArchiveBytes = CreateGZip(CreateTar("libwebp/bin/cwebp", "version 1.7.0"));
+
+            using (var firstArchive = new MemoryStream(firstArchiveBytes))
+            {
+                await WebPExecuteDownloader.InstallArchiveAsync(
+                    firstArchive, "libwebp-test.tar.gz", firstInstall, ComputeSha256(firstArchiveBytes));
+            }
+
+            using (var secondArchive = new MemoryStream(secondArchiveBytes))
+            {
+                await WebPExecuteDownloader.InstallArchiveAsync(
+                    secondArchive, "libwebp-test.tar.gz", secondInstall, ComputeSha256(secondArchiveBytes));
+            }
+
+            Assert.Equal("version 1.6.0", File.ReadAllText(Path.Combine(firstInstall, "libwebp", "bin", "cwebp")));
+            Assert.Equal("version 1.7.0", File.ReadAllText(Path.Combine(secondInstall, "libwebp", "bin", "cwebp")));
+        }
         [Fact]
         public void ExistingLibwebp150InstallationDoesNotSatisfyCurrentVersionCheck()
         {

@@ -1,6 +1,6 @@
 # WebP CLI download security
 
-`WebPExecuteDownloader.DownloadAsync` downloads the fixed libwebp 1.6.0 archive for the current supported platform, verifies its SHA-256 digest, and only then extracts and installs it under `./webp`.
+`WebPExecuteDownloader.DownloadAsync` downloads the fixed libwebp 1.6.0 archive for the current supported platform, verifies its SHA-256 digest, and only then extracts and installs it under the current user's local application data directory at `WebPWrapper/libwebp/1.6.0`.
 
 ## Integrity pins
 
@@ -26,7 +26,8 @@ Official release index: <https://storage.googleapis.com/downloads.webmproject.or
 
 ## Installation and failure behavior
 
-Downloads are serialized across processes with an exclusive lock at `.webp.install.lock` beside the installation directory. An existing directory is treated as current only when both selected-version executables (`cwebp` and `dwebp`) are present; older or incomplete installations are replaced. The archive and extracted files are staged beside `./webp` so directory moves stay on the same filesystem. The current installation is moved to a backup only after the new archive passes integrity and extraction checks. If promoting the staged directory fails, the old directory is moved back. A successful install deletes the backup. This cross-platform two-move replacement is rollback-protected, but readers can observe a brief interval between the directory moves; it is not a single atomic exchange operation.
+Downloads are serialized across processes with an exclusive lock at `.webp.install.lock` beside the versioned installation directory. An existing directory is treated as current only when both selected-version executables (`cwebp` and `dwebp`) are present; incomplete installations are replaced. Each libwebp release installs into a separate version directory, so later upgrades do not delete older usable versions. The archive and extracted files are staged beside the versioned installation directory so directory moves stay on the same filesystem. The current installation is moved to a backup only after the new archive passes integrity and extraction checks. If promoting the staged directory fails, the old directory is moved back. A successful install deletes the backup. This cross-platform two-move replacement is rollback-protected, but readers can observe a brief interval between the directory moves; it is not a single atomic exchange operation.
+Existing installations under the previous `./webp` layout are not moved or deleted. Default builders continue to use a matching legacy executable when the versioned cache does not contain it; after `Download()` installs the versioned copy, builders use that copy. Applications that supply an explicit executable path continue to use it unchanged.
 
 Temporary archives, decompressed TAR files, and incomplete staging directories are cleaned after failure where filesystem permissions permit. A failed digest, invalid archive, or extraction limit leaves the prior installation untouched.
 

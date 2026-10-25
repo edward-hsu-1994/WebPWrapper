@@ -1,9 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace WebPWrapper.Decoder {
     /// <summary>
@@ -33,25 +31,7 @@ namespace WebPWrapper.Decoder {
         /// <exception cref="PlatformNotSupportedException">The current platform is unsupported.</exception>
         /// <exception cref="FileNotFoundException">The decoder executable does not exist.</exception>
         public WebPDecoderBuilder(string executeFilePath = null) {
-            _executeFilePath = executeFilePath;
-            if (_executeFilePath == null) {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    _executeFilePath = $"webp/{_windowsDir}/bin/dwebp.exe";
-                } else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                    _executeFilePath = $"webp/{_linuxDir}/bin/dwebp";
-                }
-                else if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    _executeFilePath = $"webp/{_osxARMDir}/bin/dwebp";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-                    _executeFilePath = $"webp/{_osxDir}/bin/dwebp";
-                } else {
-                    throw new PlatformNotSupportedException();
-                }
-                _executeFilePath = Path.Combine(Path.GetFullPath("."), _executeFilePath);
-            }
-
+            _executeFilePath = executeFilePath ?? WebPExecuteDownloader.GetDefaultExecutablePath(encoder: false);
             if (!File.Exists(_executeFilePath)) {
                 throw new FileNotFoundException();
             }

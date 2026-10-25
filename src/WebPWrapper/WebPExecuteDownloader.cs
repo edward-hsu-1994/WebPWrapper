@@ -31,6 +31,7 @@ namespace WebPWrapper
         public const string WELL_KNOWN_OSX_ARM_CLI_URL =
             "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0-mac-arm64.tar.gz";
 
+        private const string CliVersion = "1.6.0";
         private const long MaxDownloadBytes = 64L * 1024 * 1024;
         private const long MaxExpandedArchiveBytes = 320L * 1024 * 1024;
         private const long MaxEntryBytes = 128L * 1024 * 1024;
@@ -54,10 +55,9 @@ namespace WebPWrapper
         public static async Task DownloadAsync(bool ignoreIfExtsis = true)
         {
             var (downloadUrl, expectedSha256, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
-            var installPath = Path.GetFullPath("webp");
+            var installPath = GetDefaultInstallationPath();
             if (ignoreIfExtsis && IsCurrentInstallationComplete(installPath, encoderRelativePath, decoderRelativePath))
                 return;
-
             var installParent = Path.GetDirectoryName(installPath);
             Directory.CreateDirectory(installParent);
 
@@ -77,6 +77,32 @@ namespace WebPWrapper
             }
         }
 
+        /// <summary>
+        /// Returns the stable per-user installation directory for the current libwebp release.
+        /// </summary>
+        internal static string GetDefaultInstallationPath()
+        {
+            return GetVersionedInstallationPath(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                CliVersion);
+        }
+
+        internal static string GetVersionedInstallationPath(string localApplicationDataPath, string version)
+        {
+            return Path.Combine(localApplicationDataPath, "WebPWrapper", "libwebp", version);
+        }
+
+        internal static string GetDefaultExecutablePath(bool encoder)
+        {
+            var (_, _, encoderRelativePath, decoderRelativePath) = GetPlatformArchive();
+            var relativePath = encoder ? encoderRelativePath : decoderRelativePath;
+            var cachedPath = Path.Combine(GetDefaultInstallationPath(), relativePath);
+            if (File.Exists(cachedPath))
+                return cachedPath;
+
+            var legacyPath = Path.Combine(Path.GetFullPath("webp"), relativePath);
+            return File.Exists(legacyPath) ? legacyPath : cachedPath;
+        }
         /// <summary>
         /// Downloads, verifies, and installs the platform WebP CLI archive synchronously.
         /// </summary>
