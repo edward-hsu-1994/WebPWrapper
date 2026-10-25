@@ -15,6 +15,9 @@ namespace WebPWrapper.Encoder {
             _arguments = arguments;
         }
 
+        /// <summary>Encodes image data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the source image.</param>
+        /// <param name="output">Writable stream receiving the WebP image.</param>
         public void Encode(Stream input, Stream output) {
             Encode(input, output, CancellationToken.None);
         }
@@ -49,9 +52,9 @@ namespace WebPWrapper.Encoder {
         /// <returns>A task representing the encoding operation.</returns>
         public Task EncodeAsync(Stream input, Stream output) => EncodeAsync(input, output, CancellationToken.None);
 
-        /// <summary>Encodes an image on a worker thread and observes cancellation.</summary>
-        /// <param name="input">Input image.</param>
-        /// <param name="output">Output WebP image.</param>
+        /// <summary>Asynchronously encodes image data from <paramref name="input"/> into <paramref name="output"/>.</summary>
+        /// <param name="input">Readable stream containing the source image.</param>
+        /// <param name="output">Writable stream receiving the WebP image.</param>
         /// <param name="cancellationToken">Token used to cancel the operation and terminate the CLI process.</param>
         /// <returns>A task representing the encoding operation.</returns>
         public Task EncodeAsync(Stream input, Stream output, CancellationToken cancellationToken) {

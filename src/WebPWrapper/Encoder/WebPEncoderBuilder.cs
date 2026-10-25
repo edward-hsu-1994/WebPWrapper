@@ -15,16 +15,20 @@ namespace WebPWrapper.Encoder {
         private string _executeFilePath;
 
 
+        /// <summary>Directory name for the bundled Windows encoder.</summary>
         public const string _windowsDir = "libwebp-1.6.0-windows-x64";
+        /// <summary>Directory name for the bundled Linux encoder.</summary>
         public const string _linuxDir = "libwebp-1.6.0-linux-x86-64";
+        /// <summary>Directory name for the bundled macOS x64 encoder.</summary>
         public const string _osxDir = "libwebp-1.6.0-mac-x86-64";
+        /// <summary>Directory name for the bundled macOS ARM64 encoder.</summary>
         public const string _osxARMDir = "libwebp-1.6.0-mac-arm64";
         /// <summary>
         /// Create <see cref="WebPEncoderBuilder"/>
         /// </summary>
         /// <param name="executeFilePath">Cli file path.</param>
-        /// <exception cref="PlatformNotSupportedException"></exception>
-        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="PlatformNotSupportedException">The current platform is unsupported.</exception>
+        /// <exception cref="FileNotFoundException">The encoder executable does not exist.</exception>
         public WebPEncoderBuilder(string executeFilePath = null) {
             _executeFilePath = executeFilePath ?? WebPExecuteDownloader.GetDefaultExecutablePath(encoder: true);
             if (!File.Exists(_executeFilePath)) {
@@ -32,26 +36,34 @@ namespace WebPWrapper.Encoder {
             }
         }
 
+        /// <summary>Crops the source image to a rectangle.</summary>
+        /// <param name="x">Left coordinate.</param><param name="y">Top coordinate.</param><param name="width">Crop width.</param><param name="height">Crop height.</param>
         public IWebPEncoderBuilder Crop(int x, int y, int width, int height) {
             _arguments.Add((key: "-crop", value: $"{x} {y} {width} {height}"));
             return this;
         }
 
+        /// <summary>Resizes the encoded image.</summary>
+        /// <param name="width">Output width.</param><param name="height">Output height.</param>
         public IWebPEncoderBuilder Resize(int width, int height) {
             _arguments.Add((key: "-resize", $"{width} {height}"));
             return this;
         }
 
+        /// <summary>Enables multithreaded encoding when supported.</summary>
         public IWebPEncoderBuilder MultiThread() {
             _arguments.Add((key: "-mt", value: null));
             return this;
         }
 
+        /// <summary>Reduces memory usage during lossy encoding.</summary>
         public IWebPEncoderBuilder LowMemory() {
             _arguments.Add((key: "-low_memory", value: null));
             return this;
         }
 
+        /// <summary>Selects metadata categories to copy to the output.</summary>
+        /// <param name="metadatas">Metadata categories to preserve.</param>
         public IWebPEncoderBuilder CopyMetadata(params Metadatas[] metadatas) {
             if (metadatas == null || metadatas.Length == 0) {
                 throw new ArgumentNullException(nameof(metadatas));
@@ -60,16 +72,21 @@ namespace WebPWrapper.Encoder {
             return this;
         }
 
+        /// <summary>Disables assembly optimizations.</summary>
         public IWebPEncoderBuilder DisableAssemblyOptimization() {
             _arguments.Add((key: "-noasm", value: null));
             return this;
         }
 
+        /// <summary>Applies a predefined profile for the source material.</summary>
+        /// <param name="profile">The profile to apply.</param>
         public IWebPEncoderBuilder LoadPresetProfile(PresetProfiles profile) {
             _arguments.Add((key: "-preset", value: profile.ToString().ToLower()));
             return this;
         }
 
+        /// <summary>Configures compression options.</summary>
+        /// <param name="config">An expression configuring compression options.</param>
         public IWebPEncoderBuilder CompressionConfig(Expression<Action<CompressionConfiguration>> config) {
             var _compressionConfiguration = new CompressionConfiguration();
             config.Compile().Invoke(_compressionConfiguration);
@@ -78,6 +95,8 @@ namespace WebPWrapper.Encoder {
             return this;
         }
 
+        /// <summary>Configures alpha-channel encoding options.</summary>
+        /// <param name="config">An expression configuring alpha options.</param>
         public IWebPEncoderBuilder AlphaConfig(Expression<Action<AlphaConfiguration>> config) {
             var _alphaConfiguration = new AlphaConfiguration();
             config.Compile().Invoke(_alphaConfiguration);
@@ -86,16 +105,21 @@ namespace WebPWrapper.Encoder {
             return this;
         }
 
+        /// <summary>Clears previously selected encoder options.</summary>
         public IWebPEncoderBuilder Reset() {
             _arguments.Clear();
             return this;
         }
 
+        /// <summary>Creates an encoder configured with the current options.</summary>
+        /// <returns>The configured encoder.</returns>
         public IWebPEncoder Build() {
             var args = GetCurrentArguments();
             return new WebPEncoder(_executeFilePath, args);
         }
 
+        /// <summary>Returns the command-line arguments accumulated by this builder.</summary>
+        /// <returns>The formatted encoder command-line arguments.</returns>
         public string GetCurrentArguments() {
             return string.Join(" ", _arguments.Select(x => {
                 if (x.key.StartsWith("-")) {

@@ -1,4 +1,5 @@
 ﻿namespace WebPWrapper.Encoder {
+    /// <summary>Options for handling transparent pixels during encoding.</summary>
     public enum TransparentProcesses {
         /// <summary>
         /// Preserve RGB values in transparent area.
