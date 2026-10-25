@@ -17,6 +17,7 @@ namespace WebPWrapper.Encoder {
         /// Specify the predictive filtering method for the alpha plane. One of none, fast or best, in increasing complexity and slowness order. Internally, alpha filtering is performed using four possible predictions (none, horizontal, vertical, gradient). The best mode will try each mode in turn and pick the one which gives the smaller size. The fast mode will just try to form an a priori guess without testing all modes.
         /// </summary>
         /// <param name="filter">Filtering method. Default is <see cref="AlphaFilters.Fast"/></param> 
+        /// <returns>This configuration, for chaining additional alpha options.</returns>
         public AlphaConfiguration Filter(AlphaFilters filter) {
             _arguments.Add((key: "-alpha_filter", value: filter.ToString().ToLower()));
             return this;
@@ -25,6 +26,7 @@ namespace WebPWrapper.Encoder {
         /// <summary>
         /// No compression
         /// </summary>
+        /// <returns>This configuration, for chaining additional alpha options.</returns>
         public AlphaConfiguration DisableCompression() {
             _arguments.Add((key: "-alpha_method", value: "0"));
             return this;
@@ -34,6 +36,8 @@ namespace WebPWrapper.Encoder {
         /// Transparent process
         /// </summary>
         /// <param name="process">Process method</param>
+        /// <exception cref="ArgumentNullException">The selected process is <see cref="TransparentProcesses.Blend"/> and no blend color was supplied.</exception>
+        /// <returns>This configuration, for chaining additional alpha options.</returns>
         public AlphaConfiguration TransparentProcess(
             TransparentProcesses process) {
             switch (process) {
@@ -54,6 +58,7 @@ namespace WebPWrapper.Encoder {
         /// </summary>
         /// <param name="process">Process method</param>
         /// <param name="blendColor">Blend color</param>
+        /// <returns>This configuration, for chaining additional alpha options.</returns>
         public AlphaConfiguration TransparentProcess(
             TransparentProcesses process,
             Color blendColor) {

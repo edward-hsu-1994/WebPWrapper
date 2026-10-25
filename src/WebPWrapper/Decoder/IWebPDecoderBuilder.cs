@@ -10,6 +10,7 @@ namespace WebPWrapper.Decoder {
         /// Output image format
         /// </summary>
         /// <param name="format">Image format</param> 
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder ExportFormat(ExportFormats format);
 
         /// <summary>
@@ -19,6 +20,7 @@ namespace WebPWrapper.Decoder {
         /// <param name="y">Top-left corner Y</param>
         /// <param name="width">Width</param>
         /// <param name="height">Height</param> 
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder Crop(int x, int y, int width, int height);
 
         /// <summary>
@@ -26,42 +28,50 @@ namespace WebPWrapper.Decoder {
         /// </summary>
         /// <param name="width">Width</param>
         /// <param name="height">Height</param> 
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder Resize(int width, int height);
 
         /// <summary>
         /// Use multi-threading for decoding, if possible.
         /// </summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder MultiThread();
 
         /// <summary>
         /// Disable all assembly optimizations.
         /// </summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder DisableAssemblyOptimization();
 
         /// <summary>
         /// Don't use the in-loop filtering process even if it is required by the bitstream. This may produce visible blocks on the non-compliant output, but it will make the decoding faster.
         /// </summary> 
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder NoFilter();
 
         /// <summary>
         /// Don't use the fancy upscaler for YUV420. This may lead to jaggy edges (especially the red ones), but should be faster.
         /// </summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder NoFancy();
 
         /// <summary>
         /// Specify a dithering strength between 0 and 100. Dithering is a post-processing effect applied to chroma components in lossy compression. It helps by smoothing gradients and avoiding banding artifacts.
         /// </summary>
         /// <param name="strength">Dithering strength(0~100)</param> 
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder Dither(int strength);
 
         /// <summary>
         /// Flip decoded image vertically (can be useful for OpenGL textures for instance).
         /// </summary>
+        /// <returns>This builder, for chaining additional decoding options.</returns>
         IWebPDecoderBuilder Flip();
 
         /// <summary>
         /// Reset
         /// </summary>
+        /// <returns>This builder after clearing previously selected decoding options.</returns>
         IWebPDecoderBuilder Reset();
 
         /// <summary>

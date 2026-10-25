@@ -10,57 +10,69 @@ namespace WebPWrapper.Encoder {
         /// <param name="x">Top-left corner X</param>
         /// <param name="y">Top-left corner Y</param>
         /// <param name="width">Width</param>
-        /// <param name="height">Height</param> 
+        /// <param name="height">Height</param>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder Crop(int x, int y, int width, int height);
 
         /// <summary>
         /// Rescale the decoded picture. At least one of <paramref name="height"/> or <paramref name="width"/> is non-zero, and if one of the values is zero then the scaling is equal
         /// </summary>
         /// <param name="width">Width</param>
-        /// <param name="height">Height</param> 
+        /// <param name="height">Height</param>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder Resize(int width, int height);
 
         /// <summary>
         /// Use multi-threading for decoding, if possible.
         /// </summary>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder MultiThread();
 
         /// <summary>
         /// Reduce memory usage of lossy encoding by saving four times the compressed size (typically). This will make the encoding slower and the output slightly different in size and distortion.
         /// </summary>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder LowMemory();
 
         /// <summary>
         /// A comma separated list of metadata to copy from the input to the output if present.
         /// </summary>
+        /// <param name="metadatas">Metadata categories to preserve. At least one category must be specified.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="metadatas"/> is <see langword="null"/> or contains no categories.</exception>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder CopyMetadata(params Metadatas[] metadatas);
 
         /// <summary>
         /// Disable all assembly optimizations.
         /// </summary>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder DisableAssemblyOptimization();
 
         /// <summary>
         /// Specify a set of pre-defined parameters to suit a particular type of source material.
         /// </summary>
         /// <param name="profile">Profile</param> 
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder LoadPresetProfile(PresetProfiles profile);
 
         /// <summary>
         /// Compression configuration.
         /// </summary>
         /// <param name="config">Config</param> 
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder CompressionConfig(Expression<Action<CompressionConfiguration>> config);
 
         /// <summary>
         /// Alpha configuration.
         /// </summary>
         /// <param name="config">Config</param>
+        /// <returns>This builder, for chaining additional encoding options.</returns>
         IWebPEncoderBuilder AlphaConfig(Expression<Action<AlphaConfiguration>> config);
 
         /// <summary>
         /// Reset.
         /// </summary>
+        /// <returns>This builder after clearing previously selected encoding options.</returns>
         IWebPEncoderBuilder Reset();
 
         /// <summary>
