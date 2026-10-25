@@ -42,6 +42,10 @@ using (var inputFile = File.Open("input.png", FileMode.Open)) {
 }
 ```
 
+## CLI downloads
+
+`WebPExecuteDownloader.Download()` downloads libwebp 1.6.0, verifies the platform archive against its pinned SHA-256 digest, applies archive size and path-safety limits, and installs the CLI through a staged directory. For checksum provenance, limits, and failure behavior, see [CLI download security](docs/security/cli-downloads.md).
+
 ## Suggestions
 
 For containerized services, I do not recommend downloading CLI in Runtime.

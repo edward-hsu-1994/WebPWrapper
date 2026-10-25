@@ -1,0 +1,35 @@
+# WebP CLI download security
+
+`WebPExecuteDownloader.DownloadAsync` downloads the fixed libwebp 1.6.0 archive for the current supported platform, verifies its SHA-256 digest, and only then extracts and installs it under `./webp`.
+
+## Integrity pins
+
+The four digests below are pinned in `WebPExecuteDownloader`. They were calculated from the corresponding libwebp 1.6.0 archives fetched over HTTPS from the official `downloads.webmproject.org` storage endpoint. The official release index does not publish SHA-256 values for these four archives; these pins therefore trust the official HTTPS source used when the pins were recorded. They are not independent publisher-signature verification. A later upstream change to any archive will fail closed until its replacement digest is independently reviewed and updated with the URL.
+
+| Platform | Archive | SHA-256 |
+| --- | --- | --- |
+| Windows x64 | `libwebp-1.6.0-windows-x64.zip` | `48886f506b21f62e4661f0f4cbfca19800897c385128e8902542d29a950c93f1` |
+| Linux x64 | `libwebp-1.6.0-linux-x86-64.tar.gz` | `1c5ffab71efecefa0e3c23516c3a3a1dccb45cc310ae1095c6f14ae268e38067` |
+| macOS x64 | `libwebp-1.6.0-mac-x86-64.tar.gz` | `f112dd83b420ab2a4b27d46610d9827ddf4200216023281de378647ecca31c2a` |
+| macOS ARM64 | `libwebp-1.6.0-mac-arm64.tar.gz` | `bc6bf84cc70f3f8574fba797d1e4a7dea4feebe9fa4be919f202413ea2b3b8f2` |
+
+Official release index: <https://storage.googleapis.com/downloads.webmproject.org/releases/webp/index.html>.
+
+## Limits and extraction rules
+
+- Compressed download: at most 64 MiB.
+- Decompressed TAR stream: at most 320 MiB.
+- Extracted content: at most 256 MiB total, 128 MiB per entry, and 4,096 entries.
+- TAR parsing uses SharpZipLib; ZIP extraction uses `ZipArchive`.
+- Absolute paths, drive-qualified names, `..` path segments, symbolic and hard links, ZIP reparse-point entries, and unsupported TAR entry types are rejected.
+- Entry data is streamed to disk; declared sizes are checked before copying. Executable bits from the verified TAR archive are applied with the platform `chmod` API, without invoking a shell.
+
+## Installation and failure behavior
+
+Downloads are serialized across processes with an exclusive lock at `.webp.install.lock` beside the installation directory. An existing directory is treated as current only when both selected-version executables (`cwebp` and `dwebp`) are present; older or incomplete installations are replaced. The archive and extracted files are staged beside `./webp` so directory moves stay on the same filesystem. The current installation is moved to a backup only after the new archive passes integrity and extraction checks. If promoting the staged directory fails, the old directory is moved back. A successful install deletes the backup. This cross-platform two-move replacement is rollback-protected, but readers can observe a brief interval between the directory moves; it is not a single atomic exchange operation.
+
+Temporary archives, decompressed TAR files, and incomplete staging directories are cleaned after failure where filesystem permissions permit. A failed digest, invalid archive, or extraction limit leaves the prior installation untouched.
+
+## Verification
+
+The `WebPWrapper.Test` suite includes deterministic tests for TAR path traversal, entry limits, link rejection, ZIP path traversal, digest mismatch, and successful TAR installation. Existing encoder/decoder tests also exercise the public downloader against the official platform archive and therefore require network access.
