@@ -6,13 +6,16 @@
     <Authors>Edward Hsu</Authors>
     <Description>WebP CLI wrapper</Description>
     <Copyright>MIT</Copyright>
-    <PackageProjectUrl>https://github.com/XuPeiYao/WebPWrapper</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/XuPeiYao/WebPWrapper</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/edward-hsu-1994/WebPWrapper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/edward-hsu-1994/WebPWrapper</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>webp wrapper</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 
